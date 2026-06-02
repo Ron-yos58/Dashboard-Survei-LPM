@@ -1,0 +1,3642 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Dasboar Survei LPM</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231a6b3a'/%3E%3Crect x='18' y='11' width='28' height='42' rx='6' fill='none' stroke='white' stroke-width='5'/%3E%3Cpath d='M26 11h12l2 6H24l2-6z' fill='white'/%3E%3Cpath d='M23 31l6 6 12-14' fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M23 45h18' stroke='white' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f5132;
+            --primary-light: #198754;
+            --primary-rgb: 15, 81, 50;
+            --accent: #20c997;
+            --bg-main: #f4f7f5;
+            --bg-card: #ffffff;
+            --border-color: rgba(226, 232, 240, 0.8);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --font-heading: 'Plus Jakarta Sans', sans-serif;
+            --font-body: 'Inter', sans-serif;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+            --shadow-lg: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+            
+            /* Scores styling */
+            --high-bg: rgba(209, 231, 221, 0.7);
+            --high-text: #0f5132;
+            --high-border: #badbcc;
+            
+            --mid-bg: rgba(255, 243, 205, 0.7);
+            --mid-text: #664d03;
+            --mid-border: #ffecb5;
+            
+            --low-bg: rgba(248, 215, 218, 0.7);
+            --low-text: #842029;
+            --low-border: #f5c2c7;
+            
+            --na-bg: #f8fafc;
+            --na-text: #64748b;
+            --na-border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100%;
+            width: 100%;
+            max-width: 100vw;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            -webkit-text-size-adjust: 100%;
+            background-image: radial-gradient(circle at 10% 20%, rgba(209, 231, 221, 0.15) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(32, 201, 151, 0.08) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        /* ── Sidebar ────────────────────────────────────────────── */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 240px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 100;
+            box-shadow: 4px 0 24px rgba(15, 23, 42, 0.02);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--text-primary);
+            padding: 4px 0 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .logo-icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(15, 81, 50, 0.15);
+        }
+
+        .logo-icon svg {
+            width: 18px;
+            height: 18px;
+            display: block;
+        }
+
+        .nav-group-label {
+            font-family: var(--font-heading);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            padding: 12px 12px 6px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
+        }
+
+        .nav-item.has-sub {
+            justify-content: flex-start;
+        }
+
+        .nav-text {
+            flex: 1;
+        }
+
+        .nav-caret {
+            width: 6px;
+            height: 6px;
+            border-right: 1.5px solid currentColor;
+            border-bottom: 1.5px solid currentColor;
+            transform: rotate(45deg);
+            transition: transform .2s;
+            opacity: .65;
+        }
+
+        .nav-item:hover {
+            background: rgba(25, 135, 84, 0.05);
+            color: var(--primary);
+            transform: translateX(2px);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #fff;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(15, 81, 50, 0.12);
+        }
+
+        .nav-icon {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            opacity: .75;
+            transition: opacity 0.2s;
+        }
+
+        .nav-item.active .nav-icon {
+            opacity: 1;
+        }
+
+        .nav-subgroup {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            margin: -2px 0 4px 14px;
+            padding-left: 12px;
+            border-left: 1px dashed rgba(15, 81, 50, 0.2);
+        }
+
+        .nav-subgroup.open {
+            display: flex;
+        }
+
+        .nav-item.has-sub.expanded .nav-caret {
+            transform: rotate(225deg);
+        }
+
+        .nav-item.sub-item {
+            padding-left: 10px;
+            font-size: 12px;
+            border-radius: var(--radius-sm);
+        }
+
+        .nav-item.sub-item .nav-icon {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* ── Main ────────────────────────────────────────────────── */
+        .main {
+            margin-left: 240px;
+            min-height: 100vh;
+            padding: 2.5rem 2.5rem 4rem;
+            max-width: 100%;
+            transition: all 0.3s;
+        }
+
+        /* ── Topbar ──────────────────────────────────────────────── */
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── Tab bar ─────────────────────────────────────────────── */
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            background: rgba(15, 81, 50, 0.05);
+            padding: 4px;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.75rem;
+            width: fit-content;
+            border: 1px solid rgba(15, 81, 50, 0.02);
+        }
+
+        .tab-btn {
+            padding: 8px 22px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            font-family: var(--font-heading);
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            background: var(--bg-card);
+            color: var(--primary);
+            font-weight: 700;
+            box-shadow: 0 4px 10px rgba(15, 81, 50, 0.08);
+        }
+
+        /* ── Stat cards ──────────────────────────────────────────── */
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .stat-row.four {
+            grid-template-columns: repeat(4, 1fr)
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            opacity: 0.85;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(15, 81, 50, 0.15);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .stat-val {
+            font-family: var(--font-heading);
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
+        .stat-sub {
+            font-size: 12px;
+            color: var(--primary-light);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        .trend-up {
+            color: #0f5132 !important;
+        }
+
+        .trend-down {
+            color: #842029 !important;
+        }
+
+        .trend-flat {
+            color: #475569 !important;
+        }
+
+        .trend-chip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 64px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid transparent;
+        }
+
+        .trend-chip.trend-up {
+            background: #d1e7dd;
+            color: #0f5132;
+            border-color: #badbcc;
+        }
+
+        .trend-chip.trend-down {
+            background: #f8d7da;
+            color: #842029;
+            border-color: #f5c2c7;
+        }
+
+        .trend-chip.trend-flat {
+            background: #e2e8f0;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        .summary-note {
+            background: rgba(209, 231, 221, 0.4);
+            border: 1px solid #badbcc;
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            color: #0f5132;
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .survey-name {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 14px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        .survey-meta {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        /* ── Top-3 cards ─────────────────────────────────────────── */
+        .top3-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .rank-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .rank-card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .rank-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+        }
+
+        .rank-card.rank-1 {
+            border-color: rgba(245, 166, 35, 0.3);
+            background: linear-gradient(180deg, #ffffff 0%, rgba(245, 166, 35, 0.03) 100%);
+        }
+
+        .rank-card.rank-1::after {
+            background: linear-gradient(90deg, #f5a623 0%, #ffc04d 100%);
+        }
+
+        .rank-card.rank-2 {
+            border-color: rgba(158, 158, 158, 0.3);
+            background: linear-gradient(180deg, #ffffff 0%, rgba(158, 158, 158, 0.03) 100%);
+        }
+
+        .rank-card.rank-2::after {
+            background: linear-gradient(90deg, #9e9e9e 0%, #cbd5e1 100%);
+        }
+
+        .rank-card.rank-3 {
+            border-color: rgba(160, 82, 45, 0.3);
+            background: linear-gradient(180deg, #ffffff 0%, rgba(160, 82, 45, 0.03) 100%);
+        }
+
+        .rank-card.rank-3::after {
+            background: linear-gradient(90deg, #a0522d 0%, #d2b48c 100%);
+        }
+
+        .medal {
+            font-size: 34px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background: rgba(15, 81, 50, 0.04);
+            border-radius: 50%;
+            box-shadow: inset 0 0 12px rgba(15, 81, 50, 0.06);
+            border: 1px solid rgba(15, 81, 50, 0.05);
+        }
+
+        .rank-1 .medal {
+            background: rgba(245, 166, 35, 0.1);
+            border-color: rgba(245, 166, 35, 0.2);
+        }
+
+        .rank-2 .medal {
+            background: rgba(158, 158, 158, 0.1);
+            border-color: rgba(158, 158, 158, 0.2);
+        }
+
+        .rank-3 .medal {
+            background: rgba(160, 82, 45, 0.1);
+            border-color: rgba(160, 82, 45, 0.2);
+        }
+
+        .unit-name {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            line-height: 1.4;
+            color: var(--text-primary);
+        }
+
+        .unit-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .final-score {
+            font-family: var(--font-heading);
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 4px 0 14px;
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+
+        .rank-1 .final-score {
+            color: #d97706;
+        }
+
+        .kpi-mini {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .kpi-chip {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-weight: 700;
+            font-family: var(--font-heading);
+            border: 1px solid transparent;
+        }
+
+        /* ── Score pills ─────────────────────────────────────────── */
+        .high {
+            background: var(--high-bg);
+            color: var(--high-text);
+            border-color: var(--high-border);
+        }
+
+        .mid {
+            background: var(--mid-bg);
+            color: var(--mid-text);
+            border-color: var(--mid-border);
+        }
+
+        .low {
+            background: var(--low-bg);
+            color: var(--low-text);
+            border-color: var(--low-border);
+        }
+
+        .na {
+            background: var(--na-bg);
+            color: var(--na-text);
+            border-color: var(--na-border);
+        }
+
+        /* ── Table ───────────────────────────────────────────────── */
+        .table-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 81, 50, 0.02);
+        }
+
+        .table-header-title {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 15px;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .table-badge {
+            font-family: var(--font-heading);
+            font-size: 11px;
+            background: rgba(15, 81, 50, 0.08);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-weight: 700;
+            border: 1px solid rgba(15, 81, 50, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead tr {
+            background: rgba(15, 81, 50, 0.03);
+        }
+
+        thead th {
+            padding: 12px 18px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-family: var(--font-heading);
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: rgba(15, 81, 50, 0.02);
+        }
+
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+
+        td {
+            padding: 12px 18px;
+            vertical-align: middle;
+            color: var(--text-secondary);
+        }
+
+        .rank-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            font-family: var(--font-heading);
+            border: 1px solid #e2e8f0;
+        }
+
+        tbody tr:nth-child(1) .rank-num {
+            background: #fef3c7;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        tbody tr:nth-child(2) .rank-num {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        tbody tr:nth-child(3) .rank-num {
+            background: #ffedd5;
+            color: #c2410c;
+            border-color: #fed7aa;
+        }
+
+        .score-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            min-width: 48px;
+            text-align: center;
+            font-family: var(--font-heading);
+            border: 1px solid transparent;
+        }
+
+        .bar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bar-track {
+            flex: 1;
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            min-width: 80px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+
+        .score-text {
+            font-size: 13px;
+            font-weight: 700;
+            min-width: 48px;
+            color: var(--text-primary);
+            font-family: var(--font-heading);
+        }
+
+        .insight-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 1.25rem 1.5rem;
+        }
+
+        .insight-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .insight-main {
+            min-width: 0;
+        }
+
+        .insight-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.4;
+            word-break: break-word;
+            color: var(--text-primary);
+        }
+
+        .insight-sub {
+            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+
+        .meter {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 8px;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            transition: width 0.8s cubic-bezier(0.1, 1, 0.1, 1);
+        }
+
+        .feedback-text {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 520px;
+        }
+
+        /* ── Filter bar ──────────────────────────────────────────── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-size: 13px;
+            color: var(--text-primary);
+            width: 240px;
+            background: var(--bg-card);
+            font-family: var(--font-body);
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.12);
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-size: 13px;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            cursor: pointer;
+            font-family: var(--font-body);
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(25, 135, 84, 0.12);
+        }
+
+        .compare-filter {
+            min-width: 160px;
+        }
+
+        .vs-compare-table {
+            min-width: 760px;
+        }
+
+        /* ── Legend ──────────────────────────────────────────────── */
+        .legend-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legend-bar strong {
+            color: var(--text-primary);
+            margin-right: 4px;
+            font-family: var(--font-heading);
+        }
+
+        .overview-score-legend {
+            margin-bottom: 1.75rem;
+            border-color: #badbcc;
+            background: rgba(209, 231, 221, 0.2);
+        }
+
+        .legend-note {
+            color: #0f5132;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        /* ── Overview two-col ────────────────────────────────────── */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        .mini-rank-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 10px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+            cursor: default;
+        }
+
+        .mini-rank-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: rgba(15, 81, 50, 0.1);
+        }
+
+        .mini-medal {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .mini-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.4;
+            font-family: var(--font-heading);
+        }
+
+        .mini-score-label {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 3px;
+            font-weight: 700;
+        }
+
+        .mini-score {
+            font-family: var(--font-heading);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+            flex-shrink: 0;
+            letter-spacing: -0.02em;
+        }
+
+        /* ── Loading / error ─────────────────────────────────────── */
+        .loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 2rem;
+            color: var(--text-secondary);
+            font-size: 14px;
+            gap: 18px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-md);
+        }
+
+        .spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(15, 81, 50, 0.1);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s cubic-bezier(0.5, 0.1, 0.4, 0.9) infinite;
+            position: relative;
+        }
+
+        .spinner::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 1px dashed rgba(25, 135, 84, 0.3);
+            animation: spin 6s linear infinite reverse;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .loader-title {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--text-primary);
+            letter-spacing: -0.01em;
+        }
+
+        .loader-progress {
+            width: min(320px, 100%);
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+
+        .loader-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
+            border-radius: 999px;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .loader-percent {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+            letter-spacing: -0.03em;
+            text-shadow: 0 2px 8px rgba(15, 81, 50, 0.1);
+        }
+
+        .loader-step {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            background: rgba(15, 81, 50, 0.05);
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 81, 50, 0.08);
+        }
+
+        .error-box {
+            background: rgba(248, 215, 218, 0.6);
+            border: 1px solid var(--low-border);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            color: var(--low-text);
+            font-size: 13px;
+            line-height: 1.6;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* ── Download button ─────────────────────────────────────── */
+        .btn-download {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(15, 81, 50, 0.25);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: var(--font-heading);
+            letter-spacing: -0.01em;
+            user-select: none;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(15, 81, 50, 0.35);
+            background: linear-gradient(135deg, var(--primary-light) 0%, #20c997 100%);
+        }
+
+        .btn-download:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(15, 81, 50, 0.2);
+        }
+
+        .btn-download svg {
+            flex-shrink: 0;
+        }
+
+        /* ── Column picker modal ─────────────────────────────────── */
+        .col-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .col-modal-box {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            width: 440px;
+            max-width: 100%;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: modalSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(12px) scale(0.96);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .col-modal-title {
+            font-family: var(--font-heading);
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 6px;
+        }
+
+        .col-modal-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 1.25rem;
+            font-weight: 500;
+        }
+
+        .col-check-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.5);
+            user-select: none;
+            transition: background 0.15s;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .col-check-item:hover {
+            background: rgba(15, 81, 50, 0.04);
+            color: var(--primary);
+        }
+
+        .col-check-item:last-child {
+            border-bottom: none;
+        }
+
+        .col-check-item input[type=checkbox] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .col-modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .col-modal-select-all {
+            font-family: var(--font-heading);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-light);
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-align: right;
+            user-select: none;
+            transition: color 0.15s;
+        }
+
+        .col-modal-select-all:hover {
+            color: #20c997;
+            text-decoration: underline;
+        }
+
+        .btn-cancel {
+            padding: 10px 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            font-size: 13px;
+            cursor: pointer;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            font-family: var(--font-heading);
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-cancel:hover {
+            background: #f1f5f9;
+            color: var(--text-primary);
+            border-color: #cbd5e1;
+        }
+
+        /* ══════════════════════════════════════════════════════════
+           RESPONSIVE — iPhone 14 Pro 393×852
+           Uses BOTH @media query AND .is-mobile class (JS)
+           so it works in browser AND inside GAS iframe.
+           ══════════════════════════════════════════════════════════ */
+        .mobile-topbar { display: none }
+        .mobile-bottom-nav { display: none }
+
+        @media(max-width:860px) {
+            html, body {
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+            }
+            .sidebar { display: none !important }
+            .main {
+                margin-left: 0 !important;
+                padding: 74px 14px 80px !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: hidden !important;
+                background: #f8faf9;
+            }
+            body { font-size: 26px }
+            .top3-grid, .stat-row, .stat-row.four, .two-col { grid-template-columns: 1fr }
+            .mobile-topbar {
+                display: flex; align-items: center; gap: 10px;
+                position: fixed; top: 0; left: 0; right: 0;
+                height: 60px; background: #fff;
+                border-bottom: 1px solid #edf2ed;
+                padding: 0 14px; z-index: 300;
+                box-shadow: 0 2px 10px rgba(0,0,0,.04);
+            }
+            .mobile-topbar .logo-icon { width: 30px; height: 30px; border-radius: 8px }
+            .mobile-topbar .logo-text { font-weight: 800; font-size: 27px; color: #111; letter-spacing: -.01em }
+            .mobile-bottom-nav {
+                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+                height: calc(58px + env(safe-area-inset-bottom, 0px));
+                background: #fff; border-top: 1px solid #e9efea;
+                z-index: 300; padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+                box-shadow: 0 -2px 10px rgba(0,0,0,.05);
+            }
+            .mob-nav-item {
+                flex: 1; display: flex; flex-direction: column;
+                align-items: center; justify-content: center; gap: 2px;
+                border: none; background: transparent; color: #999;
+                font-size: 11px; font-weight: 700; cursor: pointer;
+                text-transform: uppercase; letter-spacing: .03em;
+                padding: 6px 0; font-family: var(--font-body);
+            }
+            .mob-nav-item.active { color: var(--primary); font-weight: 755 }
+            .mob-nav-item svg { width: 17px; height: 17px }
+            .mob-nav-item svg * { stroke-width: 1.25px }
+            .topbar { flex-direction: column; gap: 10px; margin-bottom: 1rem }
+            .page-title { font-size: 39px; line-height: 1.15; letter-spacing: -.01em }
+            .page-sub { font-size: 23px; color: #667066 }
+            .loader { font-size: 21px }
+            .spinner { width: 30px; height: 30px; border-width: 3px }
+            .btn-download { width: 100%; justify-content: center; padding: 14px 16px; font-size: 24px; border-radius: 12px }
+            .tab-bar { width: 100%; border-radius: 12px; padding: 5px; background: #edf2ed }
+            .tab-btn { flex: 1; text-align: center; padding: 13px 12px; font-size: 23px; font-weight: 700; border-radius: 9px }
+            .table-card { border-radius: 12px; overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch }
+            .table-header { padding: 10px 14px }
+            .table-card table { min-width: 640px }
+            .table-card table.mobile-fit-table { min-width: 100% }
+            .table-card table.vs-compare-table { min-width: 760px }
+            .table-card table.lu-quality-table,
+            .table-card table.ss-question-table { min-width: 900px }
+            .mobile-fit-table th:first-child,
+            .mobile-fit-table td:first-child,
+            .vs-compare-table th:first-child,
+            .vs-compare-table td:first-child { width: 40px }
+            .mobile-fit-table th:last-child,
+            .mobile-fit-table td:last-child { width: 86px }
+            .vs-compare-table th:nth-child(3),
+            .vs-compare-table td:nth-child(3) { width: 82px }
+            .table-card td[style*="font-weight:600"] { line-height: 1.3 }
+            table { font-size: 23px; line-height: 1.3 }
+            thead th { font-size: 17px; padding: 9px 10px; line-height: 1.18 }
+            td { padding: 9px 10px; line-height: 1.3 }
+            .score-pill { font-size: 21px; padding: 5px 10px; min-width: 54px }
+            .rank-card { padding: 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.03) }
+            .medal { font-size: 51px }
+            .unit-name { font-size: 26px }
+            .final-score { font-size: 51px }
+            .kpi-chip { font-size: 20px; padding: 5px 12px }
+            .stat-val { font-size: 51px }
+            .stat-label { font-size: 23px }
+            .stat-sub { font-size: 21px }
+            .filter-bar { flex-direction: column; align-items: stretch; gap: 10px }
+            .search-box { width: 100%; font-size: 24px; padding: 14px 16px; border-radius: 12px }
+            .filter-select { width: 100%; font-size: 24px; padding: 14px 16px; border-radius: 12px }
+            .legend-bar { font-size: 21px; padding: 1rem; gap: 10px; max-width: 100%; overflow-x: auto; border-radius: 12px }
+            .summary-note { font-size: 22px; border-radius: 12px }
+            .survey-name { font-size: 23px }
+            .survey-meta { font-size: 19px }
+            .insight-row { font-size: 23px; gap: 12px }
+            .insight-title { font-size: 23px }
+            .insight-sub { font-size: 21px }
+            .insight-row .score-pill { font-size: 21px; min-width: 68px }
+            .meter { height: 9px; margin-top: 9px }
+            .mini-rank-card { padding: 1.1rem 1.2rem; gap: 14px; border-radius: 14px }
+            .mini-medal { font-size: 42px }
+            .mini-name { font-size: 24px }
+            .mini-score-label { font-size: 20px }
+            .mini-score { font-size: 39px }
+            .stat-card { padding: 1.2rem 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.03) }
+            .col-modal-box { padding: 24px; width: calc(100vw - 32px); border-radius: 16px }
+            .col-modal-title { font-size: 29px }
+            .col-modal-sub { font-size: 23px }
+            .col-check-item { font-size: 24px; padding: 12px 0 }
+            .col-modal-select-all { font-size: 18px }
+            .btn-cancel { font-size: 20px }
+            .table-header-title { font-size: 18px }
+            .table-badge { font-size: 14px; padding: 4px 9px }
+            .bar-track { height: 6px; min-width: 36px }
+            .score-text { font-size: 21px; min-width: 52px }
+            .trend-chip { font-size: 18px; padding: 5px 10px; min-width: 72px }
+            .rank-num { width: 36px; height: 36px; font-size: 20px }
+        }
+
+        /* Duplicate for .is-mobile (JS fallback for GAS iframe) */
+        .is-mobile .sidebar { display: none !important }
+        .is-mobile,
+        body.is-mobile { width: 100% !important; max-width: 100% !important; overflow-x: hidden !important }
+        .is-mobile .main { margin-left: 0 !important; padding: 74px 14px 80px !important; width: 100% !important; max-width: 100% !important; overflow-x: hidden !important; background: #f8faf9 }
+        .is-mobile { font-size: 26px }
+        .is-mobile .top3-grid, .is-mobile .stat-row, .is-mobile .stat-row.four, .is-mobile .two-col { grid-template-columns: 1fr }
+        .is-mobile .mobile-topbar {
+            display: flex; align-items: center; gap: 10px;
+            position: fixed; top: 0; left: 0; right: 0;
+            height: 60px; background: #fff;
+            border-bottom: 1px solid #edf2ed;
+            padding: 0 14px; z-index: 300;
+            box-shadow: 0 2px 10px rgba(0,0,0,.04);
+        }
+        .is-mobile .mobile-topbar .logo-icon { width: 30px; height: 30px; border-radius: 8px }
+        .is-mobile .mobile-topbar .logo-text { font-weight: 800; font-size: 27px; color: #111; letter-spacing: -.01em }
+        .is-mobile .mobile-bottom-nav {
+            display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+            height: calc(58px + env(safe-area-inset-bottom, 0px));
+            background: #fff; border-top: 1px solid #e9efea;
+            z-index: 300; padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,.05);
+        }
+        .is-mobile .mob-nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 2px;
+            border: none; background: transparent; color: #999;
+            font-size: 11px; font-weight: 700; cursor: pointer;
+            text-transform: uppercase; letter-spacing: .03em;
+            padding: 6px 0; font-family: var(--font-body);
+        }
+        .is-mobile .mob-nav-item.active { color: var(--primary); font-weight: 755 }
+        .is-mobile .mob-nav-item svg { width: 17px; height: 17px }
+        .is-mobile .mob-nav-item svg * { stroke-width: 1.25px }
+        .is-mobile .topbar { flex-direction: column; gap: 10px; margin-bottom: 1rem }
+        .is-mobile .page-title { font-size: 39px; line-height: 1.15; letter-spacing: -.01em }
+        .is-mobile .page-sub { font-size: 23px; color: #667066 }
+        .is-mobile .loader { font-size: 21px }
+        .is-mobile .spinner { width: 30px; height: 30px; border-width: 3px }
+        .is-mobile .btn-download { width: 100%; justify-content: center; padding: 14px 16px; font-size: 24px; border-radius: 12px }
+        .is-mobile .tab-bar { width: 100%; border-radius: 12px; padding: 5px; background: #edf2ed }
+        .is-mobile .tab-btn { flex: 1; text-align: center; padding: 13px 12px; font-size: 23px; font-weight: 700; border-radius: 9px }
+        .is-mobile .table-card { border-radius: 12px; overflow-x: auto; max-width: 100%; -webkit-overflow-scrolling: touch }
+        .is-mobile .table-header { padding: 10px 14px }
+        .is-mobile .table-card table { min-width: 640px }
+        .is-mobile .table-card table.mobile-fit-table { min-width: 100% }
+        .is-mobile .table-card table.vs-compare-table { min-width: 760px }
+        .is-mobile .table-card table.lu-quality-table,
+        .is-mobile .table-card table.ss-question-table { min-width: 900px }
+        .is-mobile .mobile-fit-table th:first-child,
+        .is-mobile .mobile-fit-table td:first-child,
+        .is-mobile .vs-compare-table th:first-child,
+        .is-mobile .vs-compare-table td:first-child { width: 40px }
+        .is-mobile .mobile-fit-table th:last-child,
+        .is-mobile .mobile-fit-table td:last-child { width: 86px }
+        .is-mobile .vs-compare-table th:nth-child(3),
+        .is-mobile .vs-compare-table td:nth-child(3) { width: 82px }
+        .is-mobile .table-card td[style*="font-weight:600"] { line-height: 1.3 }
+        .is-mobile table { font-size: 23px; line-height: 1.3 }
+        .is-mobile thead th { font-size: 17px; padding: 9px 10px; line-height: 1.18 }
+        .is-mobile td { padding: 9px 10px; line-height: 1.3 }
+        .is-mobile .score-pill { font-size: 21px; padding: 5px 10px; min-width: 54px }
+        .is-mobile .rank-card { padding: 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.03) }
+        .is-mobile .medal { font-size: 51px }
+        .is-mobile .unit-name { font-size: 26px }
+        .is-mobile .final-score { font-size: 51px }
+        .is-mobile .kpi-chip { font-size: 20px; padding: 5px 12px }
+        .is-mobile .stat-val { font-size: 51px }
+        .is-mobile .stat-label { font-size: 23px }
+        .is-mobile .stat-sub { font-size: 21px }
+        .is-mobile .filter-bar { flex-direction: column; align-items: stretch; gap: 10px }
+        .is-mobile .search-box { width: 100%; font-size: 24px; padding: 14px 16px; border-radius: 12px }
+        .is-mobile .filter-select { width: 100%; font-size: 24px; padding: 14px 16px; border-radius: 12px }
+        .is-mobile .legend-bar { font-size: 21px; padding: 1rem; gap: 10px; max-width: 100%; overflow-x: auto; border-radius: 12px }
+        .is-mobile .summary-note { font-size: 22px; border-radius: 12px }
+        .is-mobile .survey-name { font-size: 23px }
+        .is-mobile .survey-meta { font-size: 19px }
+        .is-mobile .insight-row { font-size: 23px; gap: 12px }
+        .is-mobile .insight-title { font-size: 23px }
+        .is-mobile .insight-sub { font-size: 21px }
+        .is-mobile .insight-row .score-pill { font-size: 21px; min-width: 68px }
+        .is-mobile .meter { height: 9px; margin-top: 9px }
+        .is-mobile .mini-rank-card { padding: 1.1rem 1.2rem; gap: 14px; border-radius: 14px }
+        .is-mobile .mini-medal { font-size: 42px }
+        .is-mobile .mini-name { font-size: 24px }
+        .is-mobile .mini-score-label { font-size: 20px }
+        .is-mobile .mini-score { font-size: 39px }
+        .is-mobile .stat-card { padding: 1.2rem 1.3rem; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.03) }
+        .is-mobile .col-modal-box { padding: 24px; width: calc(100vw - 32px); border-radius: 16px }
+        .is-mobile .col-modal-title { font-size: 29px }
+        .is-mobile .col-modal-sub { font-size: 23px }
+        .is-mobile .col-check-item { font-size: 24px; padding: 12px 0 }
+        .is-mobile .col-modal-select-all { font-size: 18px }
+        .is-mobile .btn-cancel { font-size: 20px }
+        .is-mobile .table-header-title { font-size: 18px }
+        .is-mobile .table-badge { font-size: 14px; padding: 4px 9px }
+        .is-mobile .bar-track { height: 6px; min-width: 36px }
+        .is-mobile .score-text { font-size: 21px; min-width: 52px }
+        .is-mobile .trend-chip { font-size: 18px; padding: 5px 10px; min-width: 72px }
+        .is-mobile .rank-num { width: 36px; height: 36px; font-size: 20px }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════  MOBILE TOP BAR  ═══════════════════════ -->
+    <div class="mobile-topbar">
+        <div class="logo-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="6" y="4" width="12" height="17" rx="2.5" stroke="currentColor" stroke-width="2" />
+                <path d="M9.5 4h5l.5 2h-6l.5-2z" fill="currentColor" />
+                <path d="M9 11l1.7 1.7L15 8.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+        </div>
+        <span class="logo-text">Dasbor Survei LPM</span>
+    </div>
+
+    <!-- ═══════════════  MOBILE BOTTOM NAV  ════════════════════ -->
+    <nav class="mobile-bottom-nav">
+        <button class="mob-nav-item active" onclick="showPage('overview')" id="mob-overview">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <rect x="3" y="3" width="7" height="7" rx="2" />
+                <rect x="14" y="3" width="7" height="7" rx="2" />
+                <rect x="3" y="14" width="7" height="7" rx="2" />
+                <rect x="14" y="14" width="7" height="7" rx="2" />
+            </svg>
+            Overview
+        </button>
+        <button class="mob-nav-item" onclick="showPage('akademik')" id="mob-akademik">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 3L2 9l10 6 10-6-10-6z" />
+                <path d="M2 17l10 6 10-6" />
+            </svg>
+            Akademik
+        </button>
+        <button class="mob-nav-item" onclick="showPage('penunjang')" id="mob-penunjang">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="9" cy="7" r="4" />
+                <path d="M1 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
+                <circle cx="19" cy="11" r="3" />
+            </svg>
+            Penunjang
+        </button>
+        <button class="mob-nav-item" onclick="showPage('visualisasi-data')" id="mob-visualisasi-data">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M4 19V5" />
+                <path d="M8 17V9" />
+                <path d="M12 17V7" />
+                <path d="M16 17v-5" />
+                <path d="M20 17V8" />
+            </svg>
+            Visual
+        </button>
+        <button class="mob-nav-item" onclick="showPage('layanan-unit')" id="mob-layanan-unit">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M4 5h16" />
+                <path d="M4 12h16" />
+                <path d="M4 19h10" />
+            </svg>
+            Layanan
+        </button>
+        <button class="mob-nav-item" onclick="showPage('student-satisfaction')" id="mob-student-satisfaction">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M12 4.5a4 4 0 014 4c0 3-4 6.5-4 6.5s-4-3.5-4-6.5a4 4 0 014-4z" />
+                <path d="M4 20h16" />
+            </svg>
+            Student
+        </button>
+    </nav>
+
+    <!-- ═══════════════════════  SIDEBAR  ═══════════════════════ -->
+    <nav class="sidebar">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <rect x="6" y="4" width="12" height="17" rx="2.5" stroke="currentColor" stroke-width="2" />
+                    <path d="M9.5 4h5l.5 2h-6l.5-2z" fill="currentColor" />
+                    <path d="M9 11l1.7 1.7L15 8.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M9 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                </svg>
+            </div>
+            Dasbor Survei LPM
+        </div>
+
+        <div class="nav-group-label">Main Menu</div>
+
+        <div class="nav-item has-sub active" onclick="showOverviewMenu()" id="nav-overview" aria-expanded="false">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1" y="1" width="6" height="6" rx="1.5" />
+                <rect x="9" y="1" width="6" height="6" rx="1.5" />
+                <rect x="1" y="9" width="6" height="6" rx="1.5" />
+                <rect x="9" y="9" width="6" height="6" rx="1.5" />
+            </svg>
+            <span class="nav-text">Survei Serentak</span>
+            <span class="nav-caret" aria-hidden="true"></span>
+        </div>
+
+        <div class="nav-subgroup" id="nav-survey-submenu">
+            <div class="nav-item sub-item" onclick="showPage('akademik')" id="nav-akademik">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M8 1.5L1 5.5l7 4 7-4-7-4z" />
+                    <path d="M1 9.5l7 4 7-4" />
+                </svg>
+                Unit Akademik
+            </div>
+
+            <div class="nav-item sub-item" onclick="showPage('penunjang')" id="nav-penunjang">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="5.5" cy="5" r="2.5" />
+                    <circle cx="11" cy="7.5" r="2" />
+                    <path d="M0 13.5c0-2.5 11-2.5 11 0" fill="none" stroke="currentColor" stroke-width="1.5" />
+                </svg>
+                Unit Penunjang
+            </div>
+        </div>
+
+        <div class="nav-item has-sub" onclick="showVisualMenu()" id="nav-visualisasi-data" aria-expanded="false">
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M2 13.5V2.5" />
+                <path d="M5.5 12V6" />
+                <path d="M9 12V3.5" />
+                <path d="M12.5 12V7.5" />
+            </svg>
+            <span class="nav-text">Visualisasi Data</span>
+            <span class="nav-caret" aria-hidden="true"></span>
+        </div>
+
+        <div class="nav-subgroup" id="nav-visual-submenu">
+            <div class="nav-item sub-item" onclick="showPage('layanan-unit')" id="nav-layanan-unit">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M2 3.5h12" />
+                    <path d="M2 8h12" />
+                    <path d="M2 12.5h8" />
+                </svg>
+                Layanan Unit
+            </div>
+
+            <div class="nav-item sub-item" onclick="showPage('student-satisfaction')" id="nav-student-satisfaction">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M2 12.5h12" />
+                    <path d="M3.5 11V6" />
+                    <path d="M7 11V3.5" />
+                    <path d="M10.5 11V5" />
+                </svg>
+                Student Satisfaction
+            </div>
+        </div>
+    </nav>
+
+    <!-- ════════════════════════  MAIN  ══════════════════════════ -->
+    <main class="main">
+
+        <!-- ── LOADER awal ── -->
+        <div id="global-loader" class="loader">
+            <div class="spinner"></div>
+            <div class="loader-title">Memuat data, harap menunggu...</div>
+            <div class="loader-progress" aria-hidden="true">
+                <div class="loader-progress-fill" id="loader-progress-fill"></div>
+            </div>
+            <div class="loader-percent" id="loader-percent">0%</div>
+            <div class="loader-step" id="loader-step">Menyiapkan koneksi data</div>
+        </div>
+
+        <!-- ════════════  PAGE: OVERVIEW  ════════════ -->
+        <div id="page-overview" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Dasbor Ringkasan Survei Serentak</div>
+                    <div class="page-sub">Ringkasan kinerja survei serentak untuk semua unit kerja</div>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Unit Akademik</div>
+                    <div class="stat-val" id="ov-total-ak">—</div>
+                    <div class="stat-sub">unit terdaftar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Unit Penunjang</div>
+                    <div class="stat-val" id="ov-total-pn">—</div>
+                    <div class="stat-sub">unit terdaftar</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rata-rata Score</div>
+                    <div class="stat-val" id="ov-avg">—</div>
+                    <div class="stat-sub">seluruh unit</div>
+                </div>
+            </div>
+
+            <div class="legend-bar overview-score-legend">
+                <span class="legend-note">
+                    <strong>Keterangan score:</strong>
+                    angka menunjukkan pencapaian target responden. Nilai 1 berarti target responden sudah terpenuhi.
+                </span>
+            </div>
+
+            <div class="two-col">
+                <div>
+                    <div style="font-size:15px;font-weight:600;margin-bottom:12px">🎓 Top 3 Unit Akademik</div>
+                    <div id="ov-top3-ak"></div>
+                </div>
+                <div>
+                    <div style="font-size:15px;font-weight:600;margin-bottom:12px">🏢 Top 3 Unit Penunjang</div>
+                    <div id="ov-top3-pn"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════  PAGE: AKADEMIK  ════════════ -->
+        <div id="page-akademik" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Dasbor Responden/Target Unit Akademik</div>
+                    <div class="page-sub">Perbandingan jumlah responden dengan target dari berbagai unit akademik</div>
+                </div>
+                <button class="btn-download" id="btn-dl-ak" onclick="downloadKlasemen('ak')">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 1v9M4 7l3.5 3.5L11 7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M1 12h13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    Download Klasemen
+                </button>
+            </div>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('ak','top3')" id="tab-ak-top3">🏆 Top 3
+                    Terbaik</button>
+                <button class="tab-btn" onclick="switchTab('ak','detail')" id="tab-ak-detail">📋 Lihat Detail</button>
+            </div>
+
+            <div id="ak-top3-view">
+                <div class="top3-grid" id="ak-top3-cards"></div>
+            </div>
+
+            <div id="ak-detail-view" style="display:none">
+                <div class="filter-bar">
+                    <input class="search-box" type="text" placeholder="🔍  Cari unit akademik…"
+                        oninput="filterTable('ak',this.value)" />
+                    <select class="filter-select" onchange="sortTable('ak',this.value)">
+                        <option value="final">Sort: Score</option>
+                        <option value="mks">Sort: MKS</option>
+                        <option value="us">Sort: US</option>
+                        <option value="ts">Sort: TS</option>
+                        <option value="ss">Sort: SS</option>
+                        <option value="kp">Sort: KP</option>
+                    </select>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Data Lengkap Unit Akademik</span>
+                        <span class="table-badge" id="ak-count">— unit</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Unit Akademik</th>
+                                <th>MKS</th>
+                                <th>US</th>
+                                <th>TS</th>
+                                <th>SS</th>
+                                <th>KP</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ak-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="legend-bar overview-score-legend">
+                <span class="legend-note">
+                    <strong>Keterangan score:</strong>
+                    angka menunjukkan pencapaian target responden. Nilai 1 berarti target responden sudah terpenuhi.
+                </span>
+            </div>
+
+            <div class="legend-bar">
+                <span><strong>MKS</strong> Mitra Kerja Sama</span>
+                <span><strong>US</strong> User Study</span>
+                <span><strong>TS</strong> Tracer Study</span>
+                <span><strong>SS</strong> Student Satisfaction</span>
+                <span><strong>KP</strong> Kepuasan Pegawai</span>
+                <span>&nbsp;|&nbsp;</span>
+                <span class="score-pill high">≥ 0.67 High</span>
+                <span class="score-pill mid">0.33 – 0.66 Medium</span>
+                <span class="score-pill low">&lt; 0.33 Low</span>
+            </div>
+        </div>
+
+        <!-- ════════════  PAGE: PENUNJANG  ════════════ -->
+        <div id="page-penunjang" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Dasbor Responden/Target Unit Penunjang</div>
+                    <div class="page-sub">Perbandingan jumlah responden dengan target dari berbagai unit penunjang</div>
+                </div>
+                <button class="btn-download" id="btn-dl-pn" onclick="downloadKlasemen('pn')">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.5 1v9M4 7l3.5 3.5L11 7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path d="M1 12h13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    Download Klasemen
+                </button>
+            </div>
+
+            <div class="tab-bar">
+                <button class="tab-btn active" onclick="switchTab('pn','top3')" id="tab-pn-top3">🏆 Top 3
+                    Terbaik</button>
+                <button class="tab-btn" onclick="switchTab('pn','detail')" id="tab-pn-detail">📋 Lihat Detail</button>
+            </div>
+
+            <div id="pn-top3-view">
+                <div class="top3-grid" id="pn-top3-cards"></div>
+            </div>
+
+            <div id="pn-detail-view" style="display:none">
+                <div class="filter-bar">
+                    <input class="search-box" type="text" placeholder="🔍  Cari unit penunjang…"
+                        oninput="filterTable('pn',this.value)" />
+                    <select class="filter-select" onchange="sortTable('pn',this.value)">
+                        <option value="final">Sort: Score</option>
+                        <option value="mks">Sort: MKS</option>
+                        <option value="us">Sort: US</option>
+                        <option value="ts">Sort: TS</option>
+                        <option value="ss">Sort: SS</option>
+                        <option value="kp">Sort: KP</option>
+                    </select>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Data Lengkap Unit Penunjang</span>
+                        <span class="table-badge" id="pn-count">— unit</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Unit Penunjang</th>
+                                <th>MKS</th>
+                                <th>US</th>
+                                <th>TS</th>
+                                <th>SS</th>
+                                <th>KP</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pn-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="legend-bar overview-score-legend">
+                <span class="legend-note">
+                    <strong>Keterangan score:</strong>
+                    angka menunjukkan pencapaian target responden. Nilai 1 berarti target responden sudah terpenuhi.
+                </span>
+            </div>
+
+            <div class="legend-bar">
+                <span><strong>MKS</strong> Mitra Kerja Sama</span>
+                <span><strong>US</strong> User Study</span>
+                <span><strong>TS</strong> Tracer Study</span>
+                <span><strong>SS</strong> Student Satisfaction</span>
+                <span><strong>KP</strong> Kepuasan Pegawai</span>
+                <span>&nbsp;|&nbsp;</span>
+                <span class="score-pill high">≥ 0.67 High</span>
+                <span class="score-pill mid">0.33 – 0.66 Medium</span>
+                <span class="score-pill low">&lt; 0.33 Low</span>
+            </div>
+        </div>
+
+        <!-- PAGE: VISUALISASI DATA -->
+        <div id="page-visualisasi-data" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Dasbor Visualisasi Data Survei Terpusat LPM</div>
+                    <div class="page-sub">Rangkuman jumlah responden seluruh survei berdasarkan tahun pengisian.</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="vs-year" onchange="applyVisualisasiFilters()">
+                    <option value="all">Semua Tahun</option>
+                </select>
+                <select class="filter-select compare-filter" id="vs-compare-1" onchange="applyVisualisasiFilters()">
+                    <option value="">Tahun Pembanding</option>
+                </select>
+            </div>
+
+            <div class="summary-note" id="vs-note">
+                Menampilkan jumlah responden dari seluruh sheet survei.
+            </div>
+
+            <div class="stat-row four">
+                <div class="stat-card">
+                    <div class="stat-label">Total Responden</div>
+                    <div class="stat-val" id="vs-total">-</div>
+                    <div class="stat-sub" id="vs-total-sub">seluruh sheet</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pembanding Utama</div>
+                    <div class="stat-val" id="vs-year-compare">-</div>
+                    <div class="stat-sub" id="vs-year-compare-sub">pilih tahun</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Sheet Terisi</div>
+                    <div class="stat-val" id="vs-filled">-</div>
+                    <div class="stat-sub">memiliki responden</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Responden Terbanyak</div>
+                    <div class="stat-val" id="vs-top-sheet">-</div>
+                    <div class="stat-sub" id="vs-top-sheet-sub">-</div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <span class="table-header-title">Jumlah Responden per Sheet</span>
+                    <span class="table-badge" id="vs-sheet-count">- sheet</span>
+                </div>
+                <table class="vs-compare-table">
+                    <thead id="vs-thead"></thead>
+                    <tbody id="vs-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGE: LAYANAN UNIT -->
+        <div id="page-layanan-unit" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Layanan Unit</div>
+                    <div class="page-sub">Analisis kualitas layanan di seluruh unit di UNPAR berdasarkan jabatan, tahun, dan penilaian responden</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="lu-year" onchange="applyLayananFilters()">
+                    <option value="all">Semua Tahun</option>
+                </select>
+                <select class="filter-select" id="lu-unit" onchange="applyLayananFilters()">
+                    <option value="all">Semua Unit</option>
+                </select>
+                <select class="filter-select" id="lu-role" onchange="applyLayananFilters()">
+                    <option value="all">Semua Peran</option>
+                </select>
+                <input class="search-box" type="text" id="lu-search" placeholder="Cari unit atau layanan..." oninput="applyLayananFilters()" />
+            </div>
+
+            <div class="stat-row four">
+                <div class="stat-card">
+                    <div class="stat-label">Total Responden</div>
+                    <div class="stat-val" id="lu-total">-</div>
+                    <div class="stat-sub">jawaban terfilter</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Rata-rata Nilai</div>
+                    <div class="stat-val" id="lu-avg">-</div>
+                    <div class="stat-sub">skala 0 sampai 1</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Unit Dinilai</div>
+                    <div class="stat-val" id="lu-units">-</div>
+                    <div class="stat-sub">unit unik</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Peran Terbanyak</div>
+                    <div class="stat-val" id="lu-top-role">-</div>
+                    <div class="stat-sub" id="lu-top-role-sub">-</div>
+                </div>
+            </div>
+
+            <div class="legend-bar overview-score-legend">
+                <span class="legend-note">
+                    <strong>Keterangan nilai:</strong>
+                    Sangat Buruk = 0, Buruk = 0.25, Cukup = 0.5, Baik = 0.75, Sangat Baik = 1.
+                </span>
+            </div>
+
+            <div class="two-col">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Distribusi Peran</span>
+                        <span class="table-badge" id="lu-role-count">- peran</span>
+                    </div>
+                    <div class="insight-list" id="lu-role-list"></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Distribusi Nilai</span>
+                        <span class="table-badge" id="lu-score-count">- nilai</span>
+                    </div>
+                    <div class="insight-list" id="lu-score-list"></div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <span class="table-header-title">Peringkat Kualitas Layanan per Unit</span>
+                    <span class="table-badge" id="lu-unit-count">- unit</span>
+                </div>
+                <table class="lu-quality-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Unit Layanan</th>
+                            <th>Responden</th>
+                            <th>Peran Dominan</th>
+                            <th>Rata-rata</th>
+                            <th>Sangat Baik + Baik</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lu-unit-tbody"></tbody>
+                </table>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <span class="table-header-title">Jumlah Responden per Bulan</span>
+                    <span class="table-badge" id="lu-month-count">- bulan</span>
+                </div>
+                <table class="mobile-fit-table">
+                    <thead>
+                        <tr>
+                            <th>Bulan</th>
+                            <th>Responden</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lu-month-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PAGE: STUDENT SATISFACTION -->
+        <div id="page-student-satisfaction" style="display:none">
+            <div class="topbar">
+                <div>
+                    <div class="page-title">Student Satisfaction</div>
+                    <div class="page-sub">Visualisasi Hasil Survei Kepuasan Mahasiswa berdasarkan program studi, angkatan, kategori, dan item survei.</div>
+                </div>
+            </div>
+
+            <div class="filter-bar">
+                <select class="filter-select" id="ss-year" onchange="applyStudentFilters()">
+                    <option value="all">Semua Tahun Survei</option>
+                </select>
+                <select class="filter-select" id="ss-entry-year" onchange="applyStudentFilters()">
+                    <option value="all">Semua Tahun Masuk</option>
+                </select>
+                <select class="filter-select" id="ss-program" onchange="applyStudentFilters()">
+                    <option value="all">Semua Program Studi</option>
+                </select>
+                <select class="filter-select" id="ss-category" onchange="applyStudentFilters()">
+                    <option value="all">Semua Kategori</option>
+                </select>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Responden</div>
+                    <div class="stat-val" id="ss-total">-</div>
+                    <div class="stat-sub">mahasiswa terfilter</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Prodi Terbanyak</div>
+                    <div class="stat-val" id="ss-top-program">-</div>
+                    <div class="stat-sub" id="ss-top-program-sub">-</div>
+                </div>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="stat-label">IKS Rata-rata</div>
+                    <div class="stat-val" id="ss-iks">-</div>
+                    <div class="stat-sub">berdasarkan Col46</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Kategori Terendah</div>
+                    <div class="stat-val" id="ss-low-category">-</div>
+                    <div class="stat-sub" id="ss-low-category-sub">-</div>
+                </div>
+            </div>
+
+            <div class="legend-bar overview-score-legend">
+                <span class="legend-note">
+                    <strong>Keterangan nilai:</strong>
+                    Sangat Tidak Setuju = 0, Tidak Setuju = 0.25, Netral = 0.5, Setuju = 0.75, Sangat Setuju = 1.
+                </span>
+            </div>
+
+            <div class="two-col">
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Rata-rata per Kategori</span>
+                        <span class="table-badge" id="ss-category-count">- kategori</span>
+                    </div>
+                    <div class="insight-list" id="ss-category-list"></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-header">
+                        <span class="table-header-title">Distribusi Kepuasan Keseluruhan</span>
+                        <span class="table-badge" id="ss-answer-count">- jawaban</span>
+                    </div>
+                    <div class="insight-list" id="ss-answer-list"></div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <span class="table-header-title">Program Studi Paling Banyak Mengisi</span>
+                    <span class="table-badge" id="ss-program-count">- prodi</span>
+                </div>
+                <table class="mobile-fit-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Program Studi</th>
+                            <th>Responden</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ss-program-tbody"></tbody>
+                </table>
+            </div>
+
+            <div class="table-card">
+                <div class="table-header">
+                    <span class="table-header-title">Prioritas Butir Pertanyaan</span>
+                    <span class="table-badge" id="ss-question-count">- pertanyaan</span>
+                </div>
+                <table class="ss-question-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Kategori</th>
+                            <th>Pertanyaan</th>
+                            <th>Jawaban</th>
+                            <th>Rata-rata</th>
+                            <th>Setuju + Sangat Setuju</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ss-question-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ════════  MODAL: Pilih Kolom Download  ════════ -->
+    <div id="modal-col-picker" class="col-modal-overlay" style="display:none">
+        <div class="col-modal-box">
+            <div class="col-modal-title">Pilih Kolom untuk Download</div>
+            <div class="col-modal-sub">Centang kolom yang ingin ditampilkan pada gambar.</div>
+            <div class="col-modal-select-all" onclick="toggleAllCols()">Pilih / Batal Semua</div>
+            <div id="col-checkboxes"></div>
+            <div class="col-modal-actions">
+                <button class="btn-cancel" onclick="closeColPicker()">Batal</button>
+                <button class="btn-download" onclick="confirmDownload()">
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                        <path d="M7.5 1v9M4 7l3.5 3.5L11 7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M1 12h13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+                    </svg>
+                    Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════  SCRIPTS  ═══════════════════════ -->
+    <script>
+        // ── State ──────────────────────────────────────────────────
+        var dataAK = [], dataPN = [], dataVS = [], dataLU = [], dataSS = [];
+        var filteredAK = [], filteredPN = [], filteredVS = [], filteredLU = [], filteredSS = [];
+        var visualisasiYears = [];
+        var visualisasiCompareBaseYear = null;
+        var ssQuestions = [], ssCategories = [];
+
+        // ── Score helpers ───────────────────────────────────────────
+        function isNull(v) { return v === null || v === undefined || v === ''; }
+        function cls(v)    { return isNull(v) ? 'na' : v >= 0.67 ? 'high' : v >= 0.33 ? 'mid' : 'low'; }
+        function color(v)  { return isNull(v) ? '#999' : v >= 0.67 ? '#1a6b3a' : v >= 0.33 ? '#b8860b' : '#c0392b'; }
+        function barClr(v) { return isNull(v) ? '#ccc' : v >= 0.67 ? '#1a6b3a' : v >= 0.33 ? '#f5a623' : '#e74c3c'; }
+        function fmt(v)    { return isNull(v) ? '-' : parseFloat(v).toFixed(3); }
+        function fmt2(v)   { return isNull(v) ? '-' : parseFloat(v).toFixed(2); }
+        function fmtPct(v) { return isNull(v) ? '-' : Math.round(v * 100) + '%'; }
+
+        function avgScore(rows) {
+            var valid = rows.filter(function (r) { return !isNull(r.score); });
+            if (!valid.length) return null;
+            return valid.reduce(function (sum, r) { return sum + r.score; }, 0) / valid.length;
+        }
+
+        function avgValues(values) {
+            var valid = values.filter(function (v) { return !isNull(v); });
+            if (!valid.length) return null;
+            return valid.reduce(function (sum, v) { return sum + parseFloat(v); }, 0) / valid.length;
+        }
+
+        function agreementLabel(score) {
+            if (score === 1) return 'Sangat Setuju';
+            if (score === 0.75) return 'Setuju';
+            if (score === 0.5) return 'Netral';
+            if (score === 0.25) return 'Tidak Setuju';
+            if (score === 0) return 'Sangat Tidak Setuju';
+            return 'Tidak terbaca';
+        }
+
+        function shortText(text, max) {
+            text = String(text || '-');
+            return text.length > max ? text.slice(0, max - 1) + '...' : text;
+        }
+
+        function scoreLabel(row) {
+            if (row.score === 1) return 'Sangat Baik';
+            if (row.score === 0.75) return 'Baik';
+            if (row.score === 0.5) return 'Cukup';
+            if (row.score === 0.25) return 'Buruk';
+            if (row.score === 0) return 'Sangat Buruk';
+            return row.scoreLabel || 'Tidak terbaca';
+        }
+
+        function setSelectOptions(id, values, allLabel) {
+            var select = document.getElementById(id);
+            var current = select.value || 'all';
+            select.innerHTML = '';
+
+            var all = document.createElement('option');
+            all.value = 'all';
+            all.textContent = allLabel;
+            select.appendChild(all);
+
+            values.forEach(function (value) {
+                var opt = document.createElement('option');
+                opt.value = String(value);
+                opt.textContent = String(value);
+                select.appendChild(opt);
+            });
+
+            var hasCurrent = Array.prototype.some.call(select.options, function (opt) {
+                return opt.value === current;
+            });
+            select.value = hasCurrent ? current : 'all';
+        }
+
+        function uniqueValues(rows, key) {
+            var map = {};
+            rows.forEach(function (row) {
+                if (row[key]) map[row[key]] = true;
+            });
+            return Object.keys(map).sort(function (a, b) { return a.localeCompare(b); });
+        }
+
+        function groupRows(rows, keyFn) {
+            var map = {};
+            rows.forEach(function (row) {
+                var key = keyFn(row);
+                if (!map[key]) map[key] = [];
+                map[key].push(row);
+            });
+            return map;
+        }
+
+        function dominantValue(rows, key) {
+            var counts = {};
+            rows.forEach(function (row) {
+                var value = row[key] || '-';
+                counts[value] = (counts[value] || 0) + 1;
+            });
+            return Object.keys(counts).sort(function (a, b) {
+                return counts[b] - counts[a] || a.localeCompare(b);
+            })[0] || '-';
+        }
+
+        function renderEmpty(tbodyId, colspan, message) {
+            document.getElementById(tbodyId).innerHTML =
+                '<tr><td colspan="' + colspan + '" style="color:#777">' + esc(message) + '</td></tr>';
+        }
+
+        // ── Render Top-3 cards (full page) ──────────────────────────
+        function renderTop3(data, containerId) {
+            var top3 = data.slice(0, 3);
+            var medals = ['🥇', '🥈', '🥉'];
+            var ranks = ['rank-1', 'rank-2', 'rank-3'];
+            var html = '';
+            top3.forEach(function (u, i) {
+                html += '<div class="rank-card ' + ranks[i] + '">'
+                    + '<span class="medal">' + medals[i] + '</span>'
+                    + '<div class="unit-name">' + esc(u.name) + '</div>'
+                    + '<div class="final-score">' + fmt(u.final) + '</div>'
+                    + '<div class="kpi-mini">'
+                    + '<span class="kpi-chip ' + cls(u.mks) + '">MKS ' + fmt2(u.mks) + '</span>'
+                    + '<span class="kpi-chip ' + cls(u.us) + '">US ' + fmt2(u.us) + '</span>'
+                    + '<span class="kpi-chip ' + cls(u.ts) + '">TS ' + fmt2(u.ts) + '</span>'
+                    + '<span class="kpi-chip ' + cls(u.ss) + '">SS ' + fmt2(u.ss) + '</span>'
+                    + '<span class="kpi-chip ' + cls(u.kp) + '">KP ' + fmt2(u.kp) + '</span>'
+                    + '</div></div>';
+            });
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // ── Render mini top-3 (overview) ────────────────────────────
+        function renderMiniTop3(data, containerId) {
+            var top3 = data.slice(0, 3);
+            var medals = ['🥇', '🥈', '🥉'];
+            var html = '';
+            top3.forEach(function (u, i) {
+                html += '<div class="mini-rank-card">'
+                    + '<span class="mini-medal">' + medals[i] + '</span>'
+                    + '<div style="flex:1"><div class="mini-name">' + esc(u.name) + '</div>'
+                    + '<div class="mini-score-label">Score</div></div>'
+                    + '<span class="mini-score">' + fmt(u.final) + '</span>'
+                    + '</div>';
+            });
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        // ── Render table ────────────────────────────────────────────
+        function renderTable(data, tbodyId, countId) {
+            document.getElementById(countId).textContent = data.length + ' unit';
+            var html = '';
+            data.forEach(function (u, i) {
+                var pct = isNull(u.final) ? 0 : (u.final * 100).toFixed(1);
+                html += '<tr>'
+                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                    + '<td style="font-weight:600">' + esc(u.name) + '</td>'
+                    + '<td><span class="score-pill ' + cls(u.mks) + '">' + fmt2(u.mks) + '</span></td>'
+                    + '<td><span class="score-pill ' + cls(u.us) + '">' + fmt2(u.us) + '</span></td>'
+                    + '<td><span class="score-pill ' + cls(u.ts) + '">' + fmt2(u.ts) + '</span></td>'
+                    + '<td><span class="score-pill ' + cls(u.ss) + '">' + fmt2(u.ss) + '</span></td>'
+                    + '<td><span class="score-pill ' + cls(u.kp) + '">' + fmt2(u.kp) + '</span></td>'
+                    + '<td><div class="bar-wrap">'
+                    + '<div class="bar-track"><div class="bar-fill" style="width:' + pct + '%;background:' + barClr(u.final) + '"></div></div>'
+                    + '<span class="score-text" style="color:' + color(u.final) + '">' + fmt(u.final) + '</span>'
+                    + '</div></td></tr>';
+            });
+            document.getElementById(tbodyId).innerHTML = html;
+        }
+
+        // ── Filter / sort ───────────────────────────────────────────
+        function initVisualisasiSummary(payload) {
+            payload = payload || { sheets: [], years: [] };
+            dataVS = payload.sheets || [];
+            visualisasiYears = payload.years || [];
+            filteredVS = dataVS.slice();
+            setSelectOptions('vs-year', visualisasiYears, 'Semua Tahun');
+            syncVisualisasiCompareOptions(document.getElementById('vs-year').value);
+            applyVisualisasiFilters();
+        }
+
+        function getVisualisasiCount(row, year) {
+            if (!row) return 0;
+            if (year === 'all') return row.total || 0;
+            return row.countsByYear && row.countsByYear[year] ? row.countsByYear[year] : 0;
+        }
+
+        function formatVisualisasiDelta(diff) {
+            if (diff > 0) return '+' + diff;
+            return String(diff);
+        }
+
+        function visualisasiTrendClass(diff) {
+            if (diff > 0) return 'trend-up';
+            if (diff < 0) return 'trend-down';
+            return 'trend-flat';
+        }
+
+        function formatVisualisasiChange(diff, previousTotal, currentTotal) {
+            if (previousTotal > 0) {
+                return formatVisualisasiDelta(diff) + ' (' + formatVisualisasiDelta((diff / previousTotal * 100).toFixed(1)) + '%)';
+            }
+            if (currentTotal > 0) return '+' + currentTotal + ' dari 0';
+            return '0';
+        }
+
+        function fillVisualisasiCompareSelect(select, years, placeholder, selectedValue, disabled) {
+            select.innerHTML = '';
+            var empty = document.createElement('option');
+            empty.value = '';
+            empty.textContent = placeholder;
+            select.appendChild(empty);
+
+            years.forEach(function (year) {
+                var opt = document.createElement('option');
+                opt.value = String(year);
+                opt.textContent = String(year);
+                select.appendChild(opt);
+            });
+
+            select.disabled = !!disabled;
+            select.value = selectedValue && years.map(String).indexOf(String(selectedValue)) !== -1
+                ? String(selectedValue)
+                : '';
+        }
+
+        function syncVisualisasiCompareOptions(baseYear) {
+            var isAll = baseYear === 'all';
+            var baseChanged = visualisasiCompareBaseYear !== baseYear;
+            visualisasiCompareBaseYear = baseYear;
+            var years = visualisasiYears.map(function (year) { return String(year); });
+            var availableYears = years.filter(function (year) { return year !== String(baseYear); });
+            var defaultYear = isAll ? '' : (availableYears.filter(function (year) {
+                return parseInt(year, 10) < parseInt(baseYear, 10);
+            })[0] || '');
+            var select = document.getElementById('vs-compare-1');
+            var current = select ? select.value : '';
+            var nextValue = current && availableYears.indexOf(current) !== -1
+                ? current
+                : (baseChanged ? defaultYear : '');
+            fillVisualisasiCompareSelect(select, availableYears, 'Tahun Pembanding', nextValue, isAll);
+        }
+
+        function getVisualisasiCompareYears() {
+            var value = document.getElementById('vs-compare-1').value;
+            return value ? [value] : [];
+        }
+
+        function renderVisualisasiHeader(compareYears) {
+            var html = '<tr>'
+                + '<th>#</th>'
+                + '<th>Nama Sheet</th>'
+                + '<th>Responden</th>';
+
+            compareYears.forEach(function (year) {
+                html += '<th>' + esc(year) + '</th>'
+                    + '<th>Selisih vs ' + esc(year) + '</th>';
+            });
+
+            html += '<th>Proporsi</th></tr>';
+            document.getElementById('vs-thead').innerHTML = html;
+        }
+
+        function applyVisualisasiFilters() {
+            var year = document.getElementById('vs-year').value;
+            syncVisualisasiCompareOptions(year);
+            var compareYears = getVisualisasiCompareYears();
+            filteredVS = dataVS.map(function (row) {
+                var count = getVisualisasiCount(row, year);
+                var comparisons = compareYears.map(function (compareYear) {
+                    var compareCount = getVisualisasiCount(row, compareYear);
+                    return {
+                        year: compareYear,
+                        count: compareCount,
+                        diff: count - compareCount
+                    };
+                });
+                return {
+                    name: row.name,
+                    timestampColumn: row.timestampColumn || '-',
+                    missing: row.missing,
+                    unreadable: row.unreadable || 0,
+                    count: count,
+                    comparisons: comparisons
+                };
+            }).sort(function (a, b) {
+                return b.count - a.count || a.name.localeCompare(b.name);
+            });
+
+            renderVisualisasiSummary(year, compareYears);
+        }
+
+        function renderVisualisasiSummary(year, compareYears) {
+            var total = filteredVS.reduce(function (sum, row) {
+                return sum + row.count;
+            }, 0);
+            var filled = filteredVS.filter(function (row) { return row.count > 0; }).length;
+            var top = filteredVS.filter(function (row) { return row.count > 0; })[0];
+            var yearLabel = year === 'all' ? 'seluruh tahun' : 'tahun ' + year;
+            var primaryCompareYear = compareYears[0] || null;
+            var primaryCompareTotal = primaryCompareYear ? dataVS.reduce(function (sum, row) {
+                return sum + getVisualisasiCount(row, primaryCompareYear);
+            }, 0) : null;
+            var diffTotal = primaryCompareYear ? total - primaryCompareTotal : null;
+            var compareSub = document.getElementById('vs-year-compare-sub');
+            var compareClass = primaryCompareYear ? visualisasiTrendClass(diffTotal) : 'trend-flat';
+            var compareLabel = compareYears.length ? compareYears.join(', ') : '';
+
+            document.getElementById('vs-total').textContent = total;
+            document.getElementById('vs-total-sub').textContent = 'responden ' + yearLabel;
+            document.getElementById('vs-year-compare').textContent = primaryCompareYear
+                ? formatVisualisasiDelta(diffTotal)
+                : '-';
+            document.getElementById('vs-year-compare').className = 'stat-val ' + compareClass;
+            compareSub.textContent = primaryCompareYear
+                ? 'dibanding ' + primaryCompareYear + ' (' + primaryCompareTotal + ' responden)'
+                : 'pilih tahun pembanding';
+            compareSub.className = 'stat-sub ' + compareClass;
+            document.getElementById('vs-filled').textContent = filled;
+            document.getElementById('vs-top-sheet').textContent = top ? shortText(top.name, 18) : '-';
+            document.getElementById('vs-top-sheet').title = top ? top.name : '';
+            document.getElementById('vs-top-sheet-sub').textContent = top ? top.count + ' responden' : '-';
+            document.getElementById('vs-note').innerHTML = year === 'all'
+                ? '<strong>Keterangan: </strong>Ini adalah jumlah responden dari seluruh tahun pada seluruh survei yang tersentralisasi di Lembaga Penjaminan Mutu.<br><br>Pilih tahun utama untuk mengaktifkan pembanding.'
+                : '<strong>Keterangan: </strong>Ini adalah responden tahun ' + esc(year) + ' dari seluruh survei yang tersentralisasi di Lembaga Penjaminan Mutu'
+                    + (compareLabel ? ', dibandingkan dengan tahun ' + esc(compareLabel) + '.' : '.');
+            document.getElementById('vs-sheet-count').textContent = filteredVS.length + ' sheet';
+            renderVisualisasiHeader(compareYears);
+
+            if (!filteredVS.length) {
+                renderEmpty('vs-tbody', 4 + (compareYears.length * 2), 'Tidak ada sheet yang dapat ditampilkan.');
+                return;
+            }
+
+            var html = '';
+            filteredVS.forEach(function (row, i) {
+                var pct = total ? row.count / total : 0;
+                var pctValue = pct * 100;
+                html += '<tr>'
+                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                    + '<td><div class="survey-name">' + esc(row.name) + '</div>'
+                    + (row.missing ? '<div class="survey-meta">Sheet tidak ditemukan</div>' : '')
+                    + '</td>'
+                    + '<td style="font-weight:700">' + row.count + '</td>';
+
+                row.comparisons.forEach(function (comparison) {
+                    var trendClass = visualisasiTrendClass(comparison.diff);
+                    var diffText = formatVisualisasiChange(comparison.diff, comparison.count, row.count);
+                    html += '<td>' + comparison.count + '</td>'
+                        + '<td><span class="trend-chip ' + trendClass + '">' + diffText + '</span></td>';
+                });
+
+                html += '<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:' + pctValue + '%;background:#1a6b3a"></div></div>'
+                    + '<span class="score-text" style="color:#1a6b3a">' + pctValue.toFixed(1) + '%</span></div></td>'
+                    + '</tr>';
+            });
+            document.getElementById('vs-tbody').innerHTML = html;
+        }
+
+        function initLayananUnit(payload) {
+            payload = payload || { rows: [], years: [] };
+            dataLU = payload.rows || [];
+            filteredLU = dataLU.slice();
+
+            var years = payload.years && payload.years.length
+                ? payload.years
+                : uniqueValues(dataLU, 'year').sort(function (a, b) { return b - a; });
+
+            setSelectOptions('lu-year', years, 'Semua Tahun');
+            setSelectOptions('lu-unit', uniqueValues(dataLU, 'unit'), 'Semua Unit');
+            setSelectOptions('lu-role', uniqueValues(dataLU, 'role'), 'Semua Peran');
+            applyLayananFilters();
+        }
+
+        function applyLayananFilters() {
+            var year = document.getElementById('lu-year').value;
+            var unit = document.getElementById('lu-unit').value;
+            var role = document.getElementById('lu-role').value;
+            var q = (document.getElementById('lu-search').value || '').toLowerCase();
+
+            filteredLU = dataLU.filter(function (row) {
+                if (year !== 'all' && String(row.year) !== year) return false;
+                if (unit !== 'all' && row.unit !== unit) return false;
+                if (role !== 'all' && row.role !== role) return false;
+                if (q) {
+                    var haystack = [row.unit, row.role, row.service, row.scoreLabel].join(' ').toLowerCase();
+                    if (haystack.indexOf(q) === -1) return false;
+                }
+                return true;
+            });
+
+            renderLayananUnit();
+        }
+
+        function renderLayananUnit() {
+            var rows = filteredLU;
+            var avg = avgScore(rows);
+            var unitCount = uniqueValues(rows, 'unit').length;
+            var topRole = dominantValue(rows, 'role');
+            var roleCount = rows.filter(function (r) { return r.role === topRole; }).length;
+
+            document.getElementById('lu-total').textContent = rows.length;
+            document.getElementById('lu-avg').textContent = isNull(avg) ? '-' : avg.toFixed(3);
+            document.getElementById('lu-units').textContent = unitCount;
+            document.getElementById('lu-top-role').textContent = shortText(topRole, 16);
+            document.getElementById('lu-top-role').title = topRole;
+            document.getElementById('lu-top-role-sub').textContent = topRole === '-' ? '-' : roleCount + ' responden';
+
+            renderLayananRoleList(rows);
+            renderLayananScoreList(rows);
+            renderLayananUnitTable(rows);
+            renderLayananMonthlyTable(rows);
+        }
+
+        function renderLayananRoleList(rows) {
+            var groups = groupRows(rows, function (r) { return r.role || '-'; });
+            var items = Object.keys(groups).map(function (role) {
+                return { name: role, count: groups[role].length, avg: avgScore(groups[role]) };
+            }).sort(function (a, b) {
+                return b.count - a.count || (b.avg || -1) - (a.avg || -1);
+            });
+
+            document.getElementById('lu-role-count').textContent = Object.keys(groups).length + ' peran';
+            renderInsightList(items, rows.length, 'lu-role-list');
+        }
+
+        function renderLayananScoreList(rows) {
+            var order = ['Sangat Baik', 'Baik', 'Cukup', 'Buruk', 'Sangat Buruk', 'Tidak terbaca'];
+            var counts = {};
+            rows.forEach(function (row) {
+                var label = scoreLabel(row);
+                counts[label] = (counts[label] || 0) + 1;
+            });
+
+            var items = order.filter(function (label) { return counts[label]; }).map(function (label) {
+                return { name: label, count: counts[label], avg: null };
+            });
+
+            document.getElementById('lu-score-count').textContent = rows.length + ' responden';
+            renderInsightList(items, rows.length, 'lu-score-list');
+        }
+
+        function renderInsightList(items, total, containerId, countLabel) {
+            countLabel = countLabel || 'responden';
+            if (!items.length) {
+                document.getElementById(containerId).innerHTML = '<div class="insight-sub">Tidak ada data.</div>';
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item) {
+                var pct = total ? item.count / total : 0;
+                var pctValue = pct * 100;
+                var pctLabel = pctValue.toFixed(2) + '%';
+                html += '<div class="insight-row">'
+                    + '<div class="insight-main">'
+                    + '<div class="insight-title">' + esc(item.name) + '</div>'
+                    + '<div class="insight-sub">' + item.count + ' ' + countLabel
+                    + (isNull(item.avg) ? '' : ' - avg ' + item.avg.toFixed(3))
+                    + '</div><div class="meter"><div class="meter-fill" style="width:' + pctValue + '%"></div></div>'
+                    + '</div>'
+                    + '<span class="score-pill ' + cls(isNull(item.avg) ? pct : item.avg) + '">' + pctLabel + '</span>'
+                    + '</div>';
+            });
+            document.getElementById(containerId).innerHTML = html;
+        }
+
+        function renderLayananUnitTable(rows) {
+            var groups = groupRows(rows, function (r) { return r.unit || '-'; });
+            var items = Object.keys(groups).map(function (unit) {
+                var group = groups[unit];
+                var avg = avgScore(group);
+                var validScores = group.filter(function (r) { return !isNull(r.score); });
+                var positive = validScores.filter(function (r) { return r.score >= 0.75; }).length;
+                return {
+                    unit: unit,
+                    count: group.length,
+                    dominantRole: dominantValue(group, 'role'),
+                    avg: avg,
+                    positiveRate: validScores.length ? positive / validScores.length : null
+                };
+            }).sort(function (a, b) {
+                return b.count - a.count || (b.avg || -1) - (a.avg || -1);
+            });
+
+            document.getElementById('lu-unit-count').textContent = items.length + ' unit';
+            if (!items.length) {
+                renderEmpty('lu-unit-tbody', 6, 'Tidak ada data untuk filter ini.');
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item, i) {
+                html += '<tr>'
+                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                    + '<td style="font-weight:600">' + esc(item.unit) + '</td>'
+                    + '<td>' + item.count + '</td>'
+                    + '<td>' + esc(item.dominantRole) + '</td>'
+                    + '<td><span class="score-pill ' + cls(item.avg) + '">' + fmt(item.avg) + '</span></td>'
+                    + '<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:' + (isNull(item.positiveRate) ? 0 : item.positiveRate * 100) + '%;background:' + barClr(item.positiveRate) + '"></div></div>'
+                    + '<span class="score-text" style="color:' + color(item.positiveRate) + '">' + fmtPct(item.positiveRate) + '</span></div></td>'
+                    + '</tr>';
+            });
+            document.getElementById('lu-unit-tbody').innerHTML = html;
+        }
+
+        function renderLayananMonthlyTable(rows) {
+            var groups = groupRows(rows, function (r) {
+                return r.monthKey || 'unknown';
+            });
+
+            var items = Object.keys(groups).map(function (key) {
+                var first = groups[key][0] || {};
+                return {
+                    key: key,
+                    label: first.monthLabel || '(Bulan tidak terbaca)',
+                    count: groups[key].length
+                };
+            }).sort(function (a, b) {
+                if (a.key === 'unknown') return 1;
+                if (b.key === 'unknown') return -1;
+                return a.key.localeCompare(b.key);
+            });
+
+            document.getElementById('lu-month-count').textContent = items.length + ' bulan';
+            if (!items.length) {
+                renderEmpty('lu-month-tbody', 2, 'Tidak ada data bulan untuk filter ini.');
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item) {
+                html += '<tr>'
+                    + '<td style="font-weight:600">' + esc(item.label) + '</td>'
+                    + '<td>' + item.count + '</td>'
+                    + '</tr>';
+            });
+            document.getElementById('lu-month-tbody').innerHTML = html;
+        }
+
+        function initStudentSatisfaction(payload) {
+            payload = payload || { rows: [], years: [], entryYears: [], programs: [], categories: [], questions: [] };
+            dataSS = payload.rows || [];
+            filteredSS = dataSS.slice();
+            ssQuestions = payload.questions || [];
+            ssCategories = payload.categories && payload.categories.length
+                ? payload.categories
+                : ssQuestions.reduce(function (arr, q) {
+                    if (arr.indexOf(q.category) === -1) arr.push(q.category);
+                    return arr;
+                }, []);
+
+            setSelectOptions('ss-year', payload.years || uniqueValues(dataSS, 'year'), 'Semua Tahun Survei');
+            setSelectOptions('ss-entry-year', payload.entryYears || uniqueValues(dataSS, 'entryYear'), 'Semua Tahun Masuk');
+            setSelectOptions('ss-program', payload.programs || uniqueValues(dataSS, 'program'), 'Semua Program Studi');
+            setSelectOptions('ss-category', ssCategories, 'Semua Kategori');
+            applyStudentFilters();
+        }
+
+        function applyStudentFilters() {
+            var year = document.getElementById('ss-year').value;
+            var entryYear = document.getElementById('ss-entry-year').value;
+            var program = document.getElementById('ss-program').value;
+
+            filteredSS = dataSS.filter(function (row) {
+                if (year !== 'all' && String(row.year) !== year) return false;
+                if (entryYear !== 'all' && row.entryYear !== entryYear) return false;
+                if (program !== 'all' && row.program !== program) return false;
+                return true;
+            });
+
+            renderStudentSatisfaction();
+        }
+
+        function getSelectedSSQuestions() {
+            var category = document.getElementById('ss-category').value;
+            return ssQuestions.filter(function (q) {
+                return category === 'all' || q.category === category;
+            });
+        }
+
+        function collectSSScores(rows, questions) {
+            var scores = [];
+            rows.forEach(function (row) {
+                questions.forEach(function (q) {
+                    var score = row.responses ? row.responses[q.id] : null;
+                    if (!isNull(score)) scores.push(score);
+                });
+            });
+            return scores;
+        }
+
+        function positiveSummary(scores) {
+            var valid = scores.filter(function (score) { return !isNull(score); });
+            var positive = valid.filter(function (score) { return score >= 0.75; }).length;
+            return {
+                count: positive,
+                total: valid.length,
+                rate: valid.length ? positive / valid.length : null
+            };
+        }
+
+        function renderStudentSatisfaction() {
+            var rows = filteredSS;
+            var questions = getSelectedSSQuestions();
+            var scores = collectSSScores(rows, questions);
+            var programs = groupRows(rows, function (r) { return r.program || '-'; });
+            var topProgram = dominantValue(rows, 'program');
+            var topProgramCount = rows.filter(function (r) { return r.program === topProgram; }).length;
+            var iksAvg = avgValues(rows.map(function (r) { return r.iks; }));
+            var categoryItems = buildStudentCategoryItems(rows, questions);
+            var lowest = categoryItems.filter(function (item) { return !isNull(item.avg); }).sort(function (a, b) {
+                return a.avg - b.avg;
+            })[0];
+
+            document.getElementById('ss-total').textContent = rows.length;
+            document.getElementById('ss-top-program').textContent = topProgram === '-' ? '-' : shortText(topProgram, 16);
+            document.getElementById('ss-top-program').title = topProgram;
+            document.getElementById('ss-top-program-sub').textContent = topProgram === '-' ? '-' : topProgramCount + ' responden';
+            document.getElementById('ss-iks').textContent = fmt(iksAvg);
+            document.getElementById('ss-low-category').textContent = lowest ? shortText(lowest.name, 16) : '-';
+            document.getElementById('ss-low-category').title = lowest ? lowest.name : '';
+            document.getElementById('ss-low-category-sub').textContent = lowest ? 'avg ' + fmt(lowest.avg) : '-';
+
+            renderStudentCategoryList(categoryItems);
+            renderStudentAnswerList(rows);
+            renderStudentProgramTable(rows, questions, Object.keys(programs).length);
+            renderStudentQuestionTable(rows, questions);
+        }
+
+        function buildStudentCategoryItems(rows, questions) {
+            var categories = {};
+            questions.forEach(function (q) {
+                if (!categories[q.category]) categories[q.category] = [];
+                categories[q.category].push(q);
+            });
+
+            return Object.keys(categories).map(function (category) {
+                var scores = collectSSScores(rows, categories[category]);
+                var respondentCount = rows.filter(function (row) {
+                    return categories[category].some(function (q) {
+                        return row.responses && !isNull(row.responses[q.id]);
+                    });
+                }).length;
+                return {
+                    name: category,
+                    count: respondentCount,
+                    answerCount: scores.length,
+                    avg: avgValues(scores)
+                };
+            }).sort(function (a, b) {
+                return (b.avg || -1) - (a.avg || -1) || b.count - a.count;
+            });
+        }
+
+        function renderStudentCategoryList(items) {
+            document.getElementById('ss-category-count').textContent = items.length + ' kategori';
+            if (!items.length) {
+                document.getElementById('ss-category-list').innerHTML = '<div class="insight-sub">Tidak ada data.</div>';
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item) {
+                var avg = isNull(item.avg) ? 0 : item.avg;
+                html += '<div class="insight-row">'
+                    + '<div class="insight-main">'
+                    + '<div class="insight-title">' + esc(item.name) + '</div>'
+                    + '<div class="insight-sub">' + item.count + ' responden - avg ' + fmt(item.avg) + '</div>'
+                    + '<div class="meter"><div class="meter-fill" style="width:' + (avg * 100) + '%;background:' + barClr(item.avg) + '"></div></div>'
+                    + '</div>'
+                    + '<span class="score-pill ' + cls(item.avg) + '">' + fmt(item.avg) + '</span>'
+                    + '</div>';
+            });
+            document.getElementById('ss-category-list').innerHTML = html;
+        }
+
+        function renderStudentAnswerList(rows) {
+            var order = [
+                { label: 'Sangat Setuju', score: 1 },
+                { label: 'Setuju', score: 0.75 },
+                { label: 'Netral', score: 0.5 },
+                { label: 'Tidak Setuju', score: 0.25 },
+                { label: 'Sangat Tidak Setuju', score: 0 }
+            ];
+            var overallQuestion = ssQuestions.filter(function (q) { return q.col === 45; })[0];
+            var scores = overallQuestion
+                ? rows.map(function (row) { return row.responses ? row.responses[overallQuestion.id] : null; })
+                    .filter(function (score) { return !isNull(score); })
+                : [];
+            var counts = {};
+            scores.forEach(function (score) {
+                var label = agreementLabel(score);
+                counts[label] = (counts[label] || 0) + 1;
+            });
+            var items = order.filter(function (item) {
+                return counts[item.label];
+            }).map(function (item) {
+                return { name: item.label, count: counts[item.label], avg: item.score };
+            });
+            document.getElementById('ss-answer-count').textContent = scores.length + ' jawaban';
+            renderInsightList(items, scores.length, 'ss-answer-list', 'jawaban');
+        }
+
+        function renderStudentProgramTable(rows, questions, programCount) {
+            var groups = groupRows(rows, function (r) { return r.program || '-'; });
+            var items = Object.keys(groups).map(function (program) {
+                var group = groups[program];
+                var scores = collectSSScores(group, questions);
+                var positive = positiveSummary(scores);
+                return {
+                    program: program,
+                    count: group.length,
+                    avg: avgValues(scores),
+                    positiveRate: positive.rate
+                };
+            }).sort(function (a, b) {
+                return b.count - a.count || (b.avg || -1) - (a.avg || -1);
+            });
+
+            document.getElementById('ss-program-count').textContent = programCount + ' prodi';
+            if (!items.length) {
+                renderEmpty('ss-program-tbody', 3, 'Tidak ada data program studi untuk filter ini.');
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item, i) {
+                html += '<tr>'
+                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                    + '<td style="font-weight:600">' + esc(item.program) + '</td>'
+                    + '<td>' + item.count + '</td>'
+                    + '</tr>';
+            });
+            document.getElementById('ss-program-tbody').innerHTML = html;
+        }
+
+        function renderStudentQuestionTable(rows, questions) {
+            var items = questions.map(function (q) {
+                var scores = collectSSScores(rows, [q]);
+                var positive = positiveSummary(scores);
+                return {
+                    category: q.category,
+                    question: q.question,
+                    count: scores.length,
+                    avg: avgValues(scores),
+                    positiveRate: positive.rate
+                };
+            }).sort(function (a, b) {
+                if (isNull(a.positiveRate)) return 1;
+                if (isNull(b.positiveRate)) return -1;
+                return b.positiveRate - a.positiveRate || (b.avg || -1) - (a.avg || -1) || b.count - a.count;
+            });
+
+            document.getElementById('ss-question-count').textContent = items.length + ' pertanyaan';
+            if (!items.length) {
+                renderEmpty('ss-question-tbody', 6, 'Tidak ada pertanyaan untuk filter ini.');
+                return;
+            }
+
+            var html = '';
+            items.forEach(function (item, i) {
+                html += '<tr>'
+                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                    + '<td>' + esc(item.category) + '</td>'
+                    + '<td style="font-weight:600;line-height:1.4">' + esc(item.question) + '</td>'
+                    + '<td>' + item.count + '</td>'
+                    + '<td><span class="score-pill ' + cls(item.avg) + '">' + fmt(item.avg) + '</span></td>'
+                    + '<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:' + (isNull(item.positiveRate) ? 0 : item.positiveRate * 100) + '%;background:' + barClr(item.positiveRate) + '"></div></div>'
+                    + '<span class="score-text" style="color:' + color(item.positiveRate) + '">' + fmtPct(item.positiveRate) + '</span></div></td>'
+                    + '</tr>';
+            });
+            document.getElementById('ss-question-tbody').innerHTML = html;
+        }
+
+        function filterTable(type, q) {
+            q = q.toLowerCase();
+            if (type === 'ak') {
+                filteredAK = dataAK.filter(function (u) { return u.name.toLowerCase().indexOf(q) !== -1 });
+                renderTable(filteredAK, 'ak-tbody', 'ak-count');
+            } else {
+                filteredPN = dataPN.filter(function (u) { return u.name.toLowerCase().indexOf(q) !== -1 });
+                renderTable(filteredPN, 'pn-tbody', 'pn-count');
+            }
+        }
+
+        function sortTable(type, field) {
+            var arr = type === 'ak' ? filteredAK : filteredPN;
+            arr.sort(function (a, b) {
+                var av = isNull(a[field]) ? -1 : a[field];
+                var bv = isNull(b[field]) ? -1 : b[field];
+                return bv - av;
+            });
+            renderTable(arr, type === 'ak' ? 'ak-tbody' : 'pn-tbody', type === 'ak' ? 'ak-count' : 'pn-count');
+        }
+
+        // ── Tab switch ──────────────────────────────────────────────
+        function switchTab(type, tab) {
+            var t3v = document.getElementById(type + '-top3-view');
+            var dtv = document.getElementById(type + '-detail-view');
+            var btnT = document.getElementById('tab-' + type + '-top3');
+            var btnD = document.getElementById('tab-' + type + '-detail');
+            if (tab === 'top3') {
+                t3v.style.display = ''; dtv.style.display = 'none';
+                btnT.classList.add('active'); btnD.classList.remove('active');
+            } else {
+                t3v.style.display = 'none'; dtv.style.display = '';
+                btnT.classList.remove('active'); btnD.classList.add('active');
+                renderTable(type === 'ak' ? filteredAK : filteredPN,
+                    type + '-tbody', type + '-count');
+            }
+        }
+
+        // ── Page navigation ─────────────────────────────────────────
+        function toggleSurveyMenu(forceOpen) {
+            var menu = document.getElementById('nav-survey-submenu');
+            var overview = document.getElementById('nav-overview');
+            if (!menu || !overview) return;
+
+            var shouldOpen = typeof forceOpen === 'boolean'
+                ? forceOpen
+                : !menu.classList.contains('open');
+
+            menu.classList.toggle('open', shouldOpen);
+            overview.classList.toggle('expanded', shouldOpen);
+            overview.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        }
+
+        function toggleVisualMenu(forceOpen) {
+            var menu = document.getElementById('nav-visual-submenu');
+            var visual = document.getElementById('nav-visualisasi-data');
+            if (!menu || !visual) return;
+
+            var shouldOpen = typeof forceOpen === 'boolean'
+                ? forceOpen
+                : !menu.classList.contains('open');
+
+            menu.classList.toggle('open', shouldOpen);
+            visual.classList.toggle('expanded', shouldOpen);
+            visual.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        }
+
+        function showOverviewMenu() {
+            showPage('overview');
+            toggleSurveyMenu();
+        }
+
+        function showVisualMenu() {
+            showPage('visualisasi-data');
+            toggleVisualMenu(true);
+        }
+
+        function showPage(page) {
+            ['overview', 'akademik', 'penunjang', 'visualisasi-data', 'layanan-unit', 'student-satisfaction'].forEach(function (p) {
+                document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
+                document.getElementById('nav-' + p).classList.toggle('active', p === page);
+                // Mobile bottom nav
+                var mob = document.getElementById('mob-' + p);
+                if (mob) mob.classList.toggle('active', p === page);
+            });
+
+            var visual = document.getElementById('nav-visualisasi-data');
+            if (visual) visual.classList.toggle('active', page === 'visualisasi-data' || page === 'layanan-unit' || page === 'student-satisfaction');
+
+            if (page === 'akademik' || page === 'penunjang') {
+                toggleSurveyMenu(true);
+                toggleVisualMenu(false);
+            } else if (page === 'visualisasi-data' || page === 'layanan-unit' || page === 'student-satisfaction') {
+                toggleSurveyMenu(false);
+                toggleVisualMenu(true);
+            } else {
+                toggleSurveyMenu(false);
+                toggleVisualMenu(false);
+            }
+        }
+
+        // ── Escape HTML ─────────────────────────────────────────────
+        function esc(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        // ── Bootstrap: panggil server-side function via GAS ─────────
+        function initDashboard(result) {
+            var ak = result.akademik;
+            var pn = result.penunjang;
+            var vs = result.visualisasiSummary || { sheets: [], years: [] };
+            var lu = result.layananUnit || { rows: [], years: [] };
+            var ss = result.studentSatisfaction || { rows: [], years: [], entryYears: [], programs: [], categories: [], questions: [] };
+
+            dataAK = ak.sort(function (a, b) { return b.final - a.final });
+            dataPN = pn.sort(function (a, b) { return b.final - a.final });
+            filteredAK = ak.slice();
+            filteredPN = pn.slice();
+
+            // Render semua view
+            renderTop3(dataAK, 'ak-top3-cards');
+            renderTop3(dataPN, 'pn-top3-cards');
+            renderMiniTop3(dataAK, 'ov-top3-ak');
+            renderMiniTop3(dataPN, 'ov-top3-pn');
+            initVisualisasiSummary(vs);
+            initLayananUnit(lu);
+            initStudentSatisfaction(ss);
+
+            // Stat cards
+            document.getElementById('ov-total-ak').textContent = dataAK.length;
+            document.getElementById('ov-total-pn').textContent = dataPN.length;
+            var all = dataAK.concat(dataPN);
+            var validUnits = all.filter(function (u) { return !isNull(u.final); });
+            var avg = validUnits.length > 0
+                ? validUnits.reduce(function (s, u) { return s + u.final; }, 0) / validUnits.length
+                : NaN;
+            document.getElementById('ov-avg').textContent = isNaN(avg) ? '-' : avg.toFixed(3);
+
+            // Sembunyikan loader, tampilkan halaman aktif
+            document.getElementById('global-loader').style.display = 'none';
+            showPage('overview');
+        }
+
+        function handleError(err) {
+            document.getElementById('global-loader').innerHTML =
+                '<div class="error-box" style="margin:2rem">'
+                + '<strong>Gagal memuat data.</strong> '
+                + (err.message || String(err))
+                + '<br><br>Pastikan Anda sudah men-deploy script dan spreadsheet dapat diakses.'
+                + '</div>';
+        }
+
+        function updateLoaderProgress(done, total, label) {
+            var pct = total ? Math.round((done / total) * 100) : 0;
+            var fill = document.getElementById('loader-progress-fill');
+            var percent = document.getElementById('loader-percent');
+            var step = document.getElementById('loader-step');
+
+            if (fill) fill.style.width = pct + '%';
+            if (percent) percent.textContent = pct + '%';
+            if (step) step.textContent = label || 'Memuat data...';
+        }
+
+        function runDashboardLoadTask(task, onSuccess, onFailure) {
+            var runner = google.script.run
+                .withSuccessHandler(onSuccess)
+                .withFailureHandler(function (err) {
+                    onFailure(task.label, err);
+                });
+
+            if (task.method === 'getAkademikData') runner.getAkademikData();
+            else if (task.method === 'getPenunjangData') runner.getPenunjangData();
+            else if (task.method === 'getSurveySummaryData') runner.getSurveySummaryData();
+            else if (task.method === 'getLayananUnitData') runner.getLayananUnitData();
+            else if (task.method === 'getStudentSatisfactionData') runner.getStudentSatisfactionData();
+        }
+
+        function loadDashboardData() {
+            var tasks = [
+                { key: 'akademik', method: 'getAkademikData', label: 'Data Akademik' },
+                { key: 'penunjang', method: 'getPenunjangData', label: 'Data Penunjang' },
+                { key: 'visualisasiSummary', method: 'getSurveySummaryData', label: 'Visualisasi Data' },
+                { key: 'layananUnit', method: 'getLayananUnitData', label: 'Layanan Unit' },
+                { key: 'studentSatisfaction', method: 'getStudentSatisfactionData', label: 'Student Satisfaction' }
+            ];
+            var result = {};
+            var loaded = 0;
+            var failed = false;
+
+            updateLoaderProgress(0, tasks.length, 'Menyiapkan koneksi data');
+
+            tasks.forEach(function (task) {
+                runDashboardLoadTask(task, function (data) {
+                    if (failed) return;
+                    result[task.key] = data;
+                    loaded++;
+                    updateLoaderProgress(loaded, tasks.length, task.label + ' selesai dimuat');
+
+                    if (loaded === tasks.length) {
+                        updateLoaderProgress(tasks.length, tasks.length, 'Semua data selesai dimuat');
+                        initDashboard(result);
+                    }
+                }, function (label, err) {
+                    failed = true;
+                    handleError({
+                        message: 'Gagal memuat ' + label + '. ' + ((err && err.message) || String(err))
+                    });
+                });
+            });
+        }
+
+        // ── Column picker state ─────────────────────────────────────
+        var _dlType = '';
+        var _colDefs = [
+            { key: 'mks',   label: 'MKS — Mitra Kerja Sama' },
+            { key: 'us',    label: 'US — User Study' },
+            { key: 'ts',    label: 'TS — Tracer Study' },
+            { key: 'ss',    label: 'SS — Student Satisfaction' },
+            { key: 'kp',    label: 'KP — Kepuasan Pegawai' },
+            { key: 'score', label: 'Score (Final)' }
+        ];
+
+        // ── Open column picker modal ────────────────────────────────
+        function downloadKlasemen(type) {
+            var data = type === 'ak' ? dataAK : dataPN;
+            if (!data || data.length === 0) {
+                alert('Data belum tersedia. Tunggu sebentar lalu coba lagi.');
+                return;
+            }
+            _dlType = type;
+            var html = '';
+            _colDefs.forEach(function (c) {
+                html += '<label class="col-check-item">'
+                    + '<input type="checkbox" checked data-col="' + c.key + '">'
+                    + '<span>' + c.label + '</span></label>';
+            });
+            document.getElementById('col-checkboxes').innerHTML = html;
+            document.getElementById('modal-col-picker').style.display = 'flex';
+        }
+
+        function toggleAllCols() {
+            var boxes = document.querySelectorAll('#col-checkboxes input[type=checkbox]');
+            var allChecked = Array.prototype.every.call(boxes, function (b) { return b.checked; });
+            boxes.forEach(function (b) { b.checked = !allChecked; });
+        }
+
+        function closeColPicker() {
+            document.getElementById('modal-col-picker').style.display = 'none';
+        }
+
+        function confirmDownload() {
+            var boxes = document.querySelectorAll('#col-checkboxes input[type=checkbox]');
+            var selected = [];
+            boxes.forEach(function (b) { if (b.checked) selected.push(b.dataset.col); });
+            if (selected.length === 0) {
+                alert('Pilih minimal satu kolom.');
+                return;
+            }
+            closeColPicker();
+            doDownloadKlasemen(_dlType, selected);
+        }
+
+        // ── Download Klasemen sebagai PNG (Instagram Story 1080×1920) ─
+        function doDownloadKlasemen(type, selectedCols) {
+            var data = type === 'ak' ? dataAK : dataPN;
+            var title = 'Dasbor Responden/Target';
+            var label = type === 'ak' ? 'Unit Akademik' : 'Unit Penunjang';
+
+            // Determine active columns
+            var kpiKeys = ['mks', 'us', 'ts', 'ss', 'kp'];
+            var showScore = selectedCols.indexOf('score') !== -1;
+            var activeKpis = kpiKeys.filter(function (k) { return selectedCols.indexOf(k) !== -1; });
+
+            // ── Instagram Story canvas: 1080 × 1920 px ────────────────
+            var W = 1080;
+            var H = 1920;
+            var PAD = 48;
+
+            var SUBHEAD_H = 52;
+            var FOOTER_H = 320;
+            var BADGE_H = 0;
+            var HEADER_H = 180;
+
+            var TABLE_AREA = H - HEADER_H - BADGE_H - SUBHEAD_H - FOOTER_H;
+            var ROW_H = Math.floor(TABLE_AREA / data.length);
+            var leftover = TABLE_AREA - ROW_H * data.length;
+            HEADER_H += leftover;
+
+            var canvas = document.createElement('canvas');
+            canvas.width = W;
+            canvas.height = H;
+            var ctx = canvas.getContext('2d');
+
+            // ── Background ────────────────────────────────────────────
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#f4fcf6');
+            bgGrad.addColorStop(0.5, '#ffffff');
+            bgGrad.addColorStop(1, '#edf8f1');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Subtle artistic circles for modern background look
+            ctx.fillStyle = 'rgba(25, 135, 84, 0.02)';
+            ctx.beginPath();
+            ctx.arc(120, 450, 280, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.beginPath();
+            ctx.arc(W - 120, H - 450, 360, 0, Math.PI * 2);
+            ctx.fill();
+
+            // ── HEADER ────────────────────────────────────────────────
+            var hGrad = ctx.createLinearGradient(0, 0, W, HEADER_H);
+            hGrad.addColorStop(0, '#0f5132'); // Deep primary emerald
+            hGrad.addColorStop(0.6, '#146841');
+            hGrad.addColorStop(1, '#198754'); // Light primary emerald
+            
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(W, 0);
+            ctx.lineTo(W, HEADER_H - 40);
+            ctx.quadraticCurveTo(W / 2, HEADER_H + 15, 0, HEADER_H - 40);
+            ctx.closePath();
+            ctx.fillStyle = hGrad;
+            ctx.fill();
+
+            // Glowing header accents
+            ctx.beginPath();
+            ctx.arc(W - 60, 10, 180, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(32, 201, 151, 0.12)'; // Accent #20c997
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(80, HEADER_H - 30, 90, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.fill();
+
+            var now = new Date();
+            var dateStr = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+            var hMid = HEADER_H / 2;
+            var lineGap = 42;
+            var subtitle = type === 'ak' ? 'Unit Akademik' : 'Unit Penunjang';
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '800 42px "Plus Jakarta Sans"';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(title, W / 2, hMid - lineGap - 10);
+
+            ctx.fillStyle = '#20c997'; // Bright mint green
+            ctx.font = 'bold 24px "Plus Jakarta Sans"';
+            ctx.fillText(subtitle.toUpperCase(), W / 2, hMid - 4);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.font = '500 18px "Inter"';
+            ctx.fillText('Tanggal ' + dateStr, W / 2, hMid + lineGap + 6);
+
+            // ── Wrap text function (modified to use modern fonts) ──────
+            function wrapTextLines(text, maxWidth, startSize, minSize, maxLines, fontWeight) {
+                var size = startSize;
+                while (size >= minSize) {
+                    ctx.font = (fontWeight || '') + size + 'px "Plus Jakarta Sans"';
+                    var words = String(text).split(/\s+/);
+                    var lines = [];
+                    var line = '';
+                    for (var wi = 0; wi < words.length; wi++) {
+                        var test = line ? (line + ' ' + words[wi]) : words[wi];
+                        if (ctx.measureText(test).width <= maxWidth) {
+                            line = test;
+                        } else {
+                            if (line) lines.push(line);
+                            line = words[wi];
+                        }
+                    }
+                    if (line) lines.push(line);
+                    if (lines.length <= maxLines) return { lines: lines, size: size };
+                    size -= 1;
+                }
+                ctx.font = (fontWeight || '') + minSize + 'px "Plus Jakarta Sans"';
+                var fallbackWords = String(text).split(/\s+/);
+                var out = [];
+                var current = '';
+                for (var fi = 0; fi < fallbackWords.length; fi++) {
+                    var next = current ? (current + ' ' + fallbackWords[fi]) : fallbackWords[fi];
+                    if (ctx.measureText(next).width <= maxWidth) {
+                        current = next;
+                    } else {
+                        if (current) out.push(current);
+                        current = fallbackWords[fi];
+                        if (out.length === maxLines - 1) break;
+                    }
+                }
+                if (current && out.length < maxLines) {
+                    while (ctx.measureText(current + '…').width > maxWidth && current.length > 0) {
+                        current = current.slice(0, -1);
+                    }
+                    out.push(current + '…');
+                }
+                return { lines: out, size: minSize };
+            }
+
+            // ── Dynamic column layout ─────────────────────────────────
+            var RANK_W = 60;
+            var KPI_W = 80;
+            var SCORE_W = 110;
+            var xAfterRank = PAD + RANK_W;
+            var NAME_W = (W - PAD) - xAfterRank - activeKpis.length * KPI_W - (showScore ? SCORE_W : 0);
+            NAME_W = Math.max(200, NAME_W);
+
+            var C = { rank: PAD, name: xAfterRank, nameW: NAME_W };
+            var xCursor = xAfterRank + NAME_W;
+            activeKpis.forEach(function (k) { C[k] = xCursor; xCursor += KPI_W; });
+            if (showScore) C.score = xCursor;
+
+            // ── COLUMN HEADER ─────────────────────────────────────────
+            var shy = HEADER_H + BADGE_H;
+            
+            // Clean glassmorphic pill background for column header
+            ctx.fillStyle = '#eaf5ed';
+            roundRect(ctx, PAD, shy + 6, W - PAD * 2, SUBHEAD_H - 12, 12);
+            ctx.fill();
+
+            var shCols = [
+                { label: '#', cx: C.rank + RANK_W / 2 },
+                { label: label.toUpperCase(), cx: C.name + NAME_W / 2 }
+            ];
+            activeKpis.forEach(function (k) { shCols.push({ label: k.toUpperCase(), cx: C[k] + KPI_W / 2 }); });
+            if (showScore) shCols.push({ label: 'SCORE', cx: C.score + SCORE_W / 2 });
+
+            ctx.fillStyle = '#0f5132'; // High-contrast forest green
+            ctx.font = '800 18px "Plus Jakarta Sans"';
+            ctx.textBaseline = 'middle';
+            shCols.forEach(function (c) {
+                ctx.textAlign = 'center';
+                ctx.fillText(c.label, c.cx, shy + SUBHEAD_H / 2);
+            });
+
+            // ── DATA ROWS ─────────────────────────────────────────────
+            var n = data.length;
+            data.forEach(function (u, i) {
+                var ry = shy + SUBHEAD_H + i * ROW_H;
+
+                var cardMargin = 8;
+                var cardX = PAD;
+                var cardY = ry + cardMargin / 2;
+                var cardW = W - PAD * 2;
+                var cardH = ROW_H - cardMargin;
+
+                // Subtle shadow for individual cards
+                ctx.shadowColor = 'rgba(15, 81, 50, 0.03)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetY = 3;
+                ctx.fillStyle = '#ffffff';
+                roundRect(ctx, cardX, cardY, cardW, cardH, 12);
+                ctx.fill();
+                
+                // Card border
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.strokeStyle = 'rgba(15, 81, 50, 0.07)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                var cy = ry + ROW_H / 2;
+                var fontSize = Math.max(14, Math.min(21, ROW_H * 0.40));
+
+                // Clean uniform circular badge for rank numbering
+                var rankR = Math.min(22, ROW_H * 0.28);
+                var rankCx = C.rank + RANK_W / 2;
+                ctx.beginPath();
+                ctx.arc(rankCx, cy, rankR, 0, Math.PI * 2);
+                ctx.fillStyle = '#f8fafc'; // Slate tint background
+                ctx.fill();
+                ctx.strokeStyle = '#cbd5e1'; // Uniform clean border
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                
+                ctx.fillStyle = '#475569'; // Uniform dark slate font color for all ranks
+                ctx.font = '800 ' + Math.round(rankR * 1.05) + 'px "Plus Jakarta Sans"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(String(i + 1), rankCx, cy);
+
+                // Modern typography for Names
+                ctx.fillStyle = '#0f172a'; // Deep slate
+                ctx.font = 'bold ' + fontSize + 'px "Plus Jakarta Sans"';
+                ctx.textAlign = 'left';
+                var maxNameW = NAME_W - 20;
+                var rowNameWrap = wrapTextLines(u.name, maxNameW, fontSize, 12, 2, 'bold ');
+                var rowLineH = Math.round(rowNameWrap.size * 1.1);
+                var rowStartY = cy - ((rowNameWrap.lines.length - 1) * rowLineH) / 2;
+                ctx.font = 'bold ' + rowNameWrap.size + 'px "Plus Jakarta Sans"';
+                rowNameWrap.lines.forEach(function (lineText, lineIdx) {
+                    ctx.fillText(lineText, C.name + 10, rowStartY + lineIdx * rowLineH);
+                });
+
+                // Style KPI values directly with colors (NO capsule backgrounds/borders)
+                function drawKpiValue(val, cx) {
+                    if (val === null || val === undefined || val === '') {
+                        ctx.font = '500 ' + fontSize + 'px "Inter"';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.fillText('-', cx, cy);
+                        return;
+                    }
+                    var num = parseFloat(val);
+                    var fg;
+                    if (num >= 0.67) {
+                        fg = '#0f5132'; // Emerald green
+                    } else if (num >= 0.33) {
+                        fg = '#856404'; // Amber yellow
+                    } else {
+                        fg = '#842029'; // Crimson red
+                    }
+                    
+                    ctx.fillStyle = fg;
+                    ctx.font = '800 ' + fontSize + 'px "Plus Jakarta Sans"';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(num.toFixed(2), cx, cy);
+                }
+
+                activeKpis.forEach(function (k) { drawKpiValue(u[k], C[k] + KPI_W / 2); });
+
+                // Style final scores directly with colors (NO capsule backgrounds/borders)
+                if (showScore) {
+                    if (u.final === null || u.final === undefined || u.final === '') {
+                        ctx.font = '500 ' + fontSize + 'px "Inter"';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = '#94a3b8';
+                        ctx.fillText('-', C.score + SCORE_W / 2, cy);
+                    } else {
+                        var finalVal = parseFloat(u.final);
+                        var fg;
+                        if (finalVal >= 0.67) {
+                            fg = '#0f5132'; // Emerald green
+                        } else if (finalVal >= 0.33) {
+                            fg = '#b8860b'; // Amber/Gold
+                        } else {
+                            fg = '#c0392b'; // Crimson red
+                        }
+                        
+                        ctx.fillStyle = fg;
+                        ctx.font = '900 ' + (fontSize + 2) + 'px "Plus Jakarta Sans"';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(finalVal.toFixed(3), C.score + SCORE_W / 2, cy);
+                    }
+                }
+            });
+
+            // ── FOOTER ────────────────────────────────────────────────
+            var fy = H - FOOTER_H;
+            var fGrad = ctx.createLinearGradient(0, fy, 0, H);
+            fGrad.addColorStop(0, '#f9fbf9');
+            fGrad.addColorStop(1, '#eaf5ee');
+            ctx.fillStyle = fGrad;
+            ctx.fillRect(0, fy, W, FOOTER_H);
+
+            ctx.strokeStyle = 'rgba(15, 81, 50, 0.08)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, fy);
+            ctx.lineTo(W, fy);
+            ctx.stroke();
+
+            // Modern Legend Pills in Footer
+            if (showScore) {
+                var legItems = [
+                    { label: 'High (≥ 0.67)', bg: 'rgba(209, 231, 221, 0.7)', fg: '#0f5132', border: '#badbcc' },
+                    { label: 'Medium (0.33–0.66)', bg: 'rgba(255, 243, 205, 0.7)', fg: '#664d03', border: '#ffecb5' },
+                    { label: 'Low (< 0.33)', bg: 'rgba(248, 215, 218, 0.7)', fg: '#842029', border: '#f5c2c7' }
+                ];
+                var legY = fy + 35;
+                var legTotalW = 740;
+                var legItemW = legTotalW / 3;
+                var legStartX = (W - legTotalW) / 2;
+                legItems.forEach(function (li, idx) {
+                    var lx = legStartX + idx * legItemW + legItemW / 2;
+                    var lW = legItemW - 16, lH = 36, lR = 18;
+                    var lPx = lx - lW / 2, lPy = legY - lH / 2;
+                    
+                    ctx.beginPath();
+                    roundRect(ctx, lPx, lPy, lW, lH, lR);
+                    ctx.fillStyle = li.bg;
+                    ctx.fill();
+                    ctx.strokeStyle = li.border;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = li.fg;
+                    ctx.font = '800 13px "Plus Jakarta Sans"';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(li.label, lx, legY);
+                });
+            }
+
+            // ── KPI Abbreviation Legend in Footer ─────────────────────
+            if (activeKpis.length > 0) {
+                var kpiDefs = {
+                    mks: 'Mitra Kerja Sama', us: 'User Study',
+                    ts: 'Tracer Study', ss: 'Student Satisfaction', kp: 'Kepuasan Pegawai'
+                };
+                var kpiY = fy + (showScore ? 90 : 50);
+                var kpiItemsList = activeKpis.map(function (k) { return { abbr: k.toUpperCase(), desc: kpiDefs[k] }; });
+                var kpiFontSize = 14;
+                var kpiGap = 24;
+                var kpiSep = 6;
+
+                var totalKpiW = 0;
+                kpiItemsList.forEach(function (item, i) {
+                    ctx.font = '800 ' + kpiFontSize + 'px "Plus Jakarta Sans"';
+                    totalKpiW += ctx.measureText(item.abbr).width + kpiSep;
+                    ctx.font = '500 ' + kpiFontSize + 'px "Inter"';
+                    totalKpiW += ctx.measureText(item.desc).width;
+                    if (i < kpiItemsList.length - 1) totalKpiW += kpiGap;
+                });
+
+                var kpiX = (W - totalKpiW) / 2;
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'left';
+                kpiItemsList.forEach(function (item, i) {
+                    ctx.font = '800 ' + kpiFontSize + 'px "Plus Jakarta Sans"';
+                    ctx.fillStyle = '#0f5132';
+                    ctx.fillText(item.abbr, kpiX, kpiY);
+                    kpiX += ctx.measureText(item.abbr).width + kpiSep;
+                    
+                    ctx.font = '500 ' + kpiFontSize + 'px "Inter"';
+                    ctx.fillStyle = '#475569';
+                    ctx.fillText(item.desc, kpiX, kpiY);
+                    kpiX += ctx.measureText(item.desc).width;
+                    
+                    if (i < kpiItemsList.length - 1) kpiX += kpiGap;
+                });
+            }
+
+            // Elegant, clean dashed Memo/Notes card in Footer
+            var noteX = PAD;
+            var noteW = W - PAD * 2;
+            var noteH = 150;
+            var noteY = H - noteH - 45;
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+            roundRect(ctx, noteX, noteY, noteW, noteH, 16);
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(15, 81, 50, 0.12)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(15, 81, 50, 0.35)';
+            ctx.font = 'bold 12px "Plus Jakarta Sans"';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            // ctx.fillText('CATATAN / MEMO', noteX + 16, noteY + 16);
+
+            // ── Helper: roundRect ──────────────────────────────────────
+            function roundRect(c, x, y, w, h, r) {
+                c.beginPath();
+                c.moveTo(x + r, y);
+                c.lineTo(x + w - r, y);
+                c.quadraticCurveTo(x + w, y, x + w, y + r);
+                c.lineTo(x + w, y + h - r);
+                c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                c.lineTo(x + r, y + h);
+                c.quadraticCurveTo(x, y + h, x, y + h - r);
+                c.lineTo(x, y + r);
+                c.quadraticCurveTo(x, y, x + r, y);
+                c.closePath();
+            }
+
+            // ── Trigger download ──────────────────────────────────────
+            var link = document.createElement('a');
+            link.download = 'Klasemen_IG_Story_' + label.replace(/ /g, '_') + '_' +
+                now.toISOString().slice(0, 10) + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        // ── Mobile detection (multi-strategy for GAS iframe) ──────────
+        function isMobileDevice() {
+            // 1. Check screen width (physical device pixels)
+            if (screen.width <= 860) return true;
+            // 2. Check viewport width
+            var vw = window.innerWidth || document.documentElement.clientWidth || 0;
+            if (vw > 0 && vw <= 860) return true;
+            // 3. Check user agent for mobile keywords
+            var ua = (navigator.userAgent || '').toLowerCase();
+            if (/iphone|ipod|android.*mobile|windows phone|blackberry|opera mini|iemobile/i.test(ua)) return true;
+            // 4. Check touch support as hint
+            if ('ontouchstart' in window && screen.width <= 1024) return true;
+            return false;
+        }
+        function checkMobile() {
+            if (isMobileDevice()) {
+                document.body.classList.add('is-mobile');
+            } else {
+                document.body.classList.remove('is-mobile');
+            }
+            applyViewportScaleFix();
+        }
+
+        // Compensate GAS iframe auto-shrink on mobile.
+        // GAS iframe sets layout viewport to ~980px ignoring <meta viewport>.
+        // On a 393px iPhone, content renders at ~40% size.
+        // Fix: zoom body by the ratio so visual output matches physical screen.
+        var _gasZoomApplied = false;
+        function applyViewportScaleFix() {
+            if (!document.body) return;
+            if (!isMobileDevice()) {
+                if (_gasZoomApplied) {
+                    document.body.style.zoom = '';
+                    document.body.style.setProperty('width', '', '');
+                    _gasZoomApplied = false;
+                }
+                return;
+            }
+            var screenW = screen.width || 393;
+            var layoutW = document.documentElement.clientWidth || window.innerWidth || screenW;
+
+            // Detect GAS iframe: layout viewport is much wider than physical screen
+            if (layoutW > screenW * 1.4 && layoutW < 1500) {
+                var ratio = layoutW / screenW;
+                document.body.style.zoom = ratio.toFixed(3);
+                document.body.style.setProperty('width', screenW + 'px', 'important');
+                document.body.style.overflowX = 'hidden';
+                _gasZoomApplied = true;
+
+                // Fixed-position elements need explicit width in zoom context
+                var screenPx = screenW + 'px';
+                var topbar = document.querySelector('.mobile-topbar');
+                var botnav = document.querySelector('.mobile-bottom-nav');
+                if (topbar) { topbar.style.setProperty('width', screenPx, 'important'); topbar.style.right = 'auto'; }
+                if (botnav) { botnav.style.setProperty('width', screenPx, 'important'); botnav.style.right = 'auto'; }
+            } else if (_gasZoomApplied) {
+                document.body.style.zoom = '';
+                document.body.style.setProperty('width', '', '');
+                _gasZoomApplied = false;
+            }
+        }
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', checkMobile);
+        }
+        // Re-check after short delay (GAS iframe may resize after load)
+        setTimeout(checkMobile, 300);
+        setTimeout(checkMobile, 1000);
+
+        // Muat data per bagian agar progress loader menunjukkan data yang sudah diterima.
+        loadDashboardData();
+    </script>
+</body>
+
+</html>

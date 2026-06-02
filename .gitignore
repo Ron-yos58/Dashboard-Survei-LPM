@@ -1,0 +1,16 @@
+# Apps Script / clasp local configuration (contains IDs/tokens)
+.clasp.json
+
+# Local secret files
+.env
+.env.*
+!.env.example
+secret*.json
+
+# Logs and OS files
+*.log
+Thumbs.db
+.DS_Store
+
+# Node dependencies (if using clasp via npm)
+node_modules/
