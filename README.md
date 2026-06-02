@@ -1,74 +1,125 @@
 # Dasbor Survei LPM
 
-Dasbor Survei LPM adalah aplikasi web berbasis Google Apps Script untuk menampilkan dan mengolah data survei LPM dari Google Spreadsheet. Aplikasi ini dipakai untuk memantau hasil survei akademik, penunjang, dan rangkuman survei layanan/mahasiswa dalam satu tampilan dashboard.
+Aplikasi ini adalah dashboard berbasis Google Apps Script untuk memantau performa survei LPM secara terpusat. Data ditarik dari Google Spreadsheet, lalu divisualisasikan dalam beberapa halaman analitik interaktif.
+
+## Ringkasan Fungsi Aplikasi
+
+- Menampilkan ringkasan capaian survei Unit Akademik dan Unit Penunjang.
+- Menampilkan visualisasi jumlah responden lintas sheet survei per tahun.
+- Menyediakan analisis kualitas layanan unit (berdasarkan nilai Likert dan peran responden).
+- Menyediakan analisis Student Satisfaction per kategori, program studi, dan butir pertanyaan.
+- Memungkinkan pencarian, filter, sorting, perbandingan tahun, dan unduh klasemen.
 
 ## Fitur Utama
 
-- Menampilkan dashboard survei dalam bentuk web app.
-- Menyajikan data leaderboard Akademik dan Penunjang.
-- Menampilkan ringkasan berbagai survei layanan unit berdasarkan tahun.
-- Mengolah data Survei Kualitas Layanan Unit-Unit di UNPAR.
-- Mengolah data Survei Kepuasan Mahasiswa.
-- Mengurutkan data berdasarkan nilai akhir atau skor tertinggi.
-- Menyediakan tampilan responsif untuk desktop dan mobile.
-- Memakai antarmuka yang dirancang langsung di file `index.html`.
+1. Survei Serentak (Overview)
+- Statistik total unit akademik, total unit penunjang, dan rata-rata score keseluruhan.
+- Top 3 unit terbaik untuk akademik dan penunjang.
 
-## Fungsi Utama Aplikasi
+2. Unit Akademik
+- Tampilan Top 3 terbaik.
+- Tabel detail semua unit dengan metrik: MKS, US, TS, SS, KP, dan Final Score.
+- Fitur cari unit, sorting berdasarkan metrik, dan badge warna kategori nilai.
+- Download klasemen ke gambar PNG (format story 1080 x 1920) dengan pilihan kolom.
 
-### 1. `doGet(e)`
-Entry point web app. Fungsi ini menampilkan halaman `index.html` sebagai antarmuka utama dashboard.
+3. Unit Penunjang
+- Fitur setara dengan halaman Unit Akademik:
+- Top 3, tabel detail, pencarian, sorting, indikator warna, dan download klasemen PNG.
 
-### 2. `getSheetData_(sheetName)`
-Membaca data leaderboard dari spreadsheet utama, memetakan kolom ke struktur data standar, lalu mengurutkan hasil berdasarkan nilai final score.
+4. Visualisasi Data Survei Terpusat
+- Rekap jumlah responden per sheet survei.
+- Filter tahun utama dan pembanding tahun.
+- Perhitungan selisih dan tren antar tahun.
+- Indikator sheet paling banyak responden dan proporsi kontribusi per sheet.
 
-### 3. `getAkademikData()`
-Mengambil data leaderboard Akademik.
+5. Layanan Unit
+- Filter berdasarkan tahun, unit, peran, serta keyword pencarian.
+- KPI: total responden, rata-rata nilai, jumlah unit dinilai, peran terbanyak.
+- Distribusi peran dan distribusi nilai (Sangat Buruk sampai Sangat Baik).
+- Tabel peringkat kualitas layanan per unit.
+- Tabel jumlah responden per bulan.
 
-### 4. `getPenunjangData()`
-Mengambil data leaderboard Penunjang.
+6. Student Satisfaction
+- Filter berdasarkan tahun survei, tahun masuk, program studi, dan kategori.
+- KPI: total responden, prodi terbanyak, IKS rata-rata, kategori terendah.
+- Rata-rata per kategori.
+- Distribusi jawaban kepuasan keseluruhan.
+- Tabel program studi paling banyak mengisi.
+- Tabel prioritas butir pertanyaan (jumlah jawaban, rata-rata, persentase setuju+sangat setuju).
 
-### 5. `getSurveySummaryData()`
-Mengambil ringkasan jumlah respons dari beberapa sheet survei, termasuk rekap per tahun dan deteksi data yang tidak terbaca.
+## Fungsi Backend (Google Apps Script)
 
-### 6. `getLayananUnitData()`
-Mengambil data Survei Kualitas Layanan Unit-Unit di UNPAR, termasuk tahun, bulan, unit, peran, skor, dan feedback.
+Fungsi utama pada sisi server:
 
-### 7. `getStudentSatisfactionData()`
-Mengambil data Survei Kepuasan Mahasiswa, memproses jawaban per pertanyaan, serta menyiapkan filter tahun, tahun masuk, program studi, dan kategori pertanyaan.
+- `doGet()`
+  - Menyajikan halaman web dari file HTML.
 
-### 8. `getAllData()`
-Menggabungkan seluruh dataset yang dibutuhkan dashboard dalam satu response agar mudah dipakai dari sisi client.
+- `getAkademikData()`
+  - Mengambil data leaderboard unit akademik.
 
-### 9. Fungsi bantu parsing data
-- `getYearFromTimestamp_()` untuk membaca tahun dari timestamp.
-- `getMonthInfoFromTimestamp_()` untuk membaca informasi bulan dan label bulan.
-- `columnToLetter_()` untuk mengubah nomor kolom menjadi huruf kolom Spreadsheet.
-- `parseLikertScore_()` untuk mengubah jawaban Likert ke skor numerik.
-- `parseAgreementScore_()` untuk mengubah jawaban setuju/tidak setuju ke skor.
-- `parseIndexScore_()` untuk mengubah nilai indeks ke format skor seragam.
+- `getPenunjangData()`
+  - Mengambil data leaderboard unit penunjang.
 
-## Sumber Data
+- `getSurveySummaryData()`
+  - Menghitung ringkasan jumlah responden dari beberapa sheet survei berdasarkan tahun.
 
-Aplikasi membaca data dari dua spreadsheet utama:
+- `getLayananUnitData()`
+  - Mengambil dan menormalisasi data Survei Kualitas Layanan Unit.
 
-- Spreadsheet leaderboard utama untuk data Akademik dan Penunjang.
-- Spreadsheet survei layanan untuk data ringkasan survei, layanan unit, dan kepuasan mahasiswa.
+- `getStudentSatisfactionData()`
+  - Mengambil dan menormalisasi data Survei Kepuasan Mahasiswa, termasuk daftar kategori dan pertanyaan.
+
+- `getAllData()`
+  - Mengembalikan seluruh dataset sekaligus (disediakan sebagai helper agregasi).
+
+Fungsi helper penting:
+
+- Parsing tahun dan bulan dari timestamp.
+- Konversi nilai teks ke skor numerik (Likert, agreement, index).
+- Mapping kolom ke struktur data standar untuk dipakai di UI.
+
+## Teknologi yang Digunakan
+
+- Google Apps Script (backend + hosting web app)
+- Google Spreadsheet (data source)
+- HTML, CSS, JavaScript vanilla (frontend dashboard)
+
+## Struktur Halaman
+
+- Sidebar desktop + bottom navigation mobile.
+- Halaman:
+  - Overview
+  - Unit Akademik
+  - Unit Penunjang
+  - Visualisasi Data
+  - Layanan Unit
+  - Student Satisfaction
+
+## Cara Menjalankan (Deploy)
+
+1. Buka project di Google Apps Script.
+2. Pastikan file `Code.gs` dan `index.html` sudah sesuai.
+3. Klik Deploy -> New deployment.
+4. Pilih type: Web app.
+5. Execute as: Me.
+6. Access: sesuai kebutuhan (contoh: Anyone with the link).
+7. Deploy dan buka URL web app.
+
+## Catatan Konfigurasi
+
+- Aplikasi mengambil data dari Spreadsheet ID yang didefinisikan di `Code.gs`.
+- Nama sheet harus sama persis dengan konfigurasi variabel.
+- Jika ada sheet tidak ditemukan, aplikasi tetap berjalan dan menandai status sheet tersebut.
+
+## Catatan Interpretasi Nilai
+
+- Skala umum dashboard dinormalisasi ke rentang 0 sampai 1.
+- Kategori visual default:
+  - High: >= 0.67
+  - Medium: 0.33 sampai 0.66
+  - Low: < 0.33
 
 ## Struktur File
 
-- `Code.gs` - logika server Google Apps Script dan pengolahan data.
-- `index.html` - tampilan dashboard, gaya visual, dan logika client-side.
-
-## Cara Menjalankan
-
-1. Buka project ini di Google Apps Script.
-2. Pastikan `SPREADSHEET_ID` dan `LAYANAN_UNIT_SPREADSHEET_ID` sudah sesuai.
-3. Jalankan `Deploy > New deployment`.
-4. Pilih tipe `Web app`.
-5. Atur akses sesuai kebutuhan, misalnya `Anyone` jika dashboard ingin dibuka umum.
-
-## Catatan
-
-- Data leaderboard diasumsikan memiliki kolom nama, beberapa komponen skor, dan nilai final pada urutan kolom yang sudah dipetakan di `Code.gs`.
-- Jika nama sheet berubah, fungsi pengambilan data juga perlu disesuaikan.
-- Halaman UI dirancang langsung di `index.html`, jadi perubahan tampilan dilakukan di file tersebut.
+- `Code.gs` -> logika backend Apps Script dan akses data Spreadsheet.
+- `index.html` -> tampilan dashboard, style, interaksi UI, dan render data.
