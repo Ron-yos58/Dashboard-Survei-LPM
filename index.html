@@ -1240,7 +1240,6 @@
            so it works in browser AND inside GAS iframe.
            ══════════════════════════════════════════════════════════ */
         .mobile-topbar { display: none }
-        .mobile-bottom-nav { display: none }
 
         @media(max-width:860px) {
             html, body {
@@ -1269,24 +1268,6 @@
             }
             .mobile-topbar .logo-icon { width: 30px; height: 30px; border-radius: 8px }
             .mobile-topbar .logo-text { font-weight: 800; font-size: 27px; color: #111; letter-spacing: -.01em }
-            .mobile-bottom-nav {
-                display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-                height: calc(58px + env(safe-area-inset-bottom, 0px));
-                background: #fff; border-top: 1px solid #e9efea;
-                z-index: 300; padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
-                box-shadow: 0 -2px 10px rgba(0,0,0,.05);
-            }
-            .mob-nav-item {
-                flex: 1; display: flex; flex-direction: column;
-                align-items: center; justify-content: center; gap: 2px;
-                border: none; background: transparent; color: #999;
-                font-size: 11px; font-weight: 700; cursor: pointer;
-                text-transform: uppercase; letter-spacing: .03em;
-                padding: 6px 0; font-family: var(--font-body);
-            }
-            .mob-nav-item.active { color: var(--primary); font-weight: 755 }
-            .mob-nav-item svg { width: 17px; height: 17px }
-            .mob-nav-item svg * { stroke-width: 1.25px }
             .topbar { flex-direction: column; gap: 10px; margin-bottom: 1rem }
             .page-title { font-size: 39px; line-height: 1.15; letter-spacing: -.01em }
             .page-sub { font-size: 23px; color: #667066 }
@@ -1372,24 +1353,6 @@
         }
         .is-mobile .mobile-topbar .logo-icon { width: 30px; height: 30px; border-radius: 8px }
         .is-mobile .mobile-topbar .logo-text { font-weight: 800; font-size: 27px; color: #111; letter-spacing: -.01em }
-        .is-mobile .mobile-bottom-nav {
-            display: flex; position: fixed; bottom: 0; left: 0; right: 0;
-            height: calc(58px + env(safe-area-inset-bottom, 0px));
-            background: #fff; border-top: 1px solid #e9efea;
-            z-index: 300; padding: 0 0 env(safe-area-inset-bottom, 0px) 0;
-            box-shadow: 0 -2px 10px rgba(0,0,0,.05);
-        }
-        .is-mobile .mob-nav-item {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; gap: 2px;
-            border: none; background: transparent; color: #999;
-            font-size: 11px; font-weight: 700; cursor: pointer;
-            text-transform: uppercase; letter-spacing: .03em;
-            padding: 6px 0; font-family: var(--font-body);
-        }
-        .is-mobile .mob-nav-item.active { color: var(--primary); font-weight: 755 }
-        .is-mobile .mob-nav-item svg { width: 17px; height: 17px }
-        .is-mobile .mob-nav-item svg * { stroke-width: 1.25px }
         .is-mobile .topbar { flex-direction: column; gap: 10px; margin-bottom: 1rem }
         .is-mobile .page-title { font-size: 39px; line-height: 1.15; letter-spacing: -.01em }
         .is-mobile .page-sub { font-size: 23px; color: #667066 }
@@ -1456,6 +1419,375 @@
         .is-mobile .score-text { font-size: 21px; min-width: 52px }
         .is-mobile .trend-chip { font-size: 18px; padding: 5px 10px; min-width: 72px }
         .is-mobile .rank-num { width: 36px; height: 36px; font-size: 20px }
+
+        /* Mobile navigation drawer */
+        .mobile-menu-toggle,
+        .mobile-menu-backdrop,
+        .mobile-only-nav {
+            display: none;
+        }
+
+        .mobile-menu-toggle {
+            width: 40px;
+            height: 40px;
+            flex: 0 0 40px;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+            border: 1px solid rgba(15, 81, 50, 0.12);
+            border-radius: 11px;
+            background: rgba(15, 81, 50, 0.04);
+            color: var(--primary);
+            cursor: pointer;
+            transition: background .2s, border-color .2s;
+        }
+
+        .mobile-menu-toggle span {
+            width: 18px;
+            height: 2px;
+            border-radius: 999px;
+            background: currentColor;
+            transition: transform .25s, opacity .2s;
+        }
+
+        body.mobile-menu-open .mobile-menu-toggle span:nth-child(1) {
+            transform: translateY(6px) rotate(45deg);
+        }
+
+        body.mobile-menu-open .mobile-menu-toggle span:nth-child(2) {
+            opacity: 0;
+        }
+
+        body.mobile-menu-open .mobile-menu-toggle span:nth-child(3) {
+            transform: translateY(-6px) rotate(-45deg);
+        }
+
+        @media(max-width:860px) {
+            .main {
+                padding-bottom: 32px !important;
+            }
+
+            .mobile-topbar {
+                justify-content: flex-start;
+                z-index: 440;
+            }
+
+            .mobile-topbar .logo-text {
+                min-width: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                font-size: 22px;
+            }
+
+            .mobile-menu-toggle {
+                display: inline-flex;
+            }
+
+            .sidebar {
+                display: flex !important;
+                top: 60px;
+                width: calc(100% - 88px);
+                max-width: 284px;
+                padding: 20px 14px calc(22px + env(safe-area-inset-bottom, 0px));
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                transform: translateX(-105%);
+                transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+                z-index: 430;
+                box-shadow: 18px 0 50px rgba(15, 23, 42, .16);
+            }
+
+            body.mobile-menu-open .sidebar {
+                transform: translateX(0);
+            }
+
+            .sidebar .logo {
+                display: none;
+            }
+
+            .sidebar .nav-group-label {
+                padding-inline: 10px;
+                font-size: 15px;
+                letter-spacing: .07em;
+            }
+
+            .sidebar .nav-item {
+                gap: 12px;
+                padding: 14px 12px;
+                font-size: 21px;
+                font-weight: 600;
+                line-height: 1.35;
+            }
+
+            .sidebar .nav-subgroup {
+                margin-left: 8px;
+                padding-left: 8px;
+            }
+
+            .sidebar .nav-item.sub-item {
+                padding: 12px 8px;
+                font-size: 19px;
+                font-weight: 500;
+            }
+
+            .sidebar .nav-icon {
+                width: 21px;
+                height: 21px;
+            }
+
+            .sidebar .nav-item.sub-item .nav-icon {
+                width: 20px;
+                height: 20px;
+            }
+
+            .sidebar .nav-icon,
+            .sidebar .nav-icon * {
+                stroke-width: 0 !important;
+            }
+
+            .loader {
+                width: 100%;
+                min-height: 360px;
+                padding: 48px 28px;
+                gap: 22px;
+                border-radius: 22px;
+            }
+
+            .spinner {
+                width: 56px;
+                height: 56px;
+                border-width: 5px;
+            }
+
+            .spinner::after {
+                inset: -9px;
+                border-width: 2px;
+            }
+
+            .loader-title {
+                width: 100%;
+                max-width: 330px;
+                font-size: 24px;
+                line-height: 1.4;
+                overflow-wrap: anywhere;
+            }
+
+            .loader-progress {
+                width: 100%;
+                max-width: 330px;
+                height: 10px;
+            }
+
+            .loader-percent {
+                font-size: 38px;
+            }
+
+            .loader-step {
+                font-size: 17px;
+                padding: 8px 16px;
+            }
+
+            .sidebar .sidebar-credit {
+                padding-top: 1.25rem;
+                font-size: 16px;
+                line-height: 1.5;
+            }
+
+            .sidebar .sidebar-credit a {
+                margin-top: 4px;
+                font-size: 17px;
+            }
+
+            .mobile-only-nav {
+                display: flex;
+            }
+
+            .mobile-menu-backdrop {
+                display: block;
+                position: fixed;
+                inset: 60px 0 0;
+                border: 0;
+                background: rgba(15, 23, 42, .42);
+                backdrop-filter: blur(3px);
+                opacity: 0;
+                pointer-events: none;
+                z-index: 410;
+                transition: opacity .22s ease;
+            }
+
+            body.mobile-menu-open .mobile-menu-backdrop {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            body.mobile-menu-open {
+                overflow: hidden !important;
+            }
+        }
+
+        body.is-mobile .main {
+            padding-bottom: 32px !important;
+        }
+
+        body.is-mobile .mobile-topbar {
+            justify-content: flex-start;
+            z-index: 440;
+        }
+
+        body.is-mobile .mobile-topbar .logo-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 22px;
+        }
+
+        body.is-mobile .mobile-menu-toggle {
+            display: inline-flex;
+        }
+
+        body.is-mobile .sidebar {
+            display: flex !important;
+            top: 60px;
+            width: calc(100% - 88px);
+            max-width: 284px;
+            padding: 20px 14px calc(22px + env(safe-area-inset-bottom, 0px));
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            transform: translateX(-105%);
+            transition: transform .28s cubic-bezier(.22, 1, .36, 1);
+            z-index: 430;
+            box-shadow: 18px 0 50px rgba(15, 23, 42, .16);
+        }
+
+        body.is-mobile.mobile-menu-open .sidebar {
+            transform: translateX(0);
+        }
+
+        body.is-mobile .sidebar .logo {
+            display: none;
+        }
+
+        body.is-mobile .sidebar .nav-group-label {
+            padding-inline: 10px;
+            font-size: 15px;
+            letter-spacing: .07em;
+        }
+
+        body.is-mobile .sidebar .nav-item {
+            gap: 12px;
+            padding: 14px 12px;
+            font-size: 21px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        body.is-mobile .sidebar .nav-subgroup {
+            margin-left: 8px;
+            padding-left: 8px;
+        }
+
+        body.is-mobile .sidebar .nav-item.sub-item {
+            padding: 12px 8px;
+            font-size: 19px;
+            font-weight: 500;
+        }
+
+        body.is-mobile .sidebar .nav-icon {
+            width: 21px;
+            height: 21px;
+        }
+
+        body.is-mobile .sidebar .nav-item.sub-item .nav-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        body.is-mobile .sidebar .nav-icon,
+        body.is-mobile .sidebar .nav-icon * {
+            stroke-width: 0 !important;
+        }
+
+        body.is-mobile .loader {
+            width: 100%;
+            min-height: 360px;
+            padding: 48px 28px;
+            gap: 22px;
+            border-radius: 22px;
+        }
+
+        body.is-mobile .spinner {
+            width: 56px;
+            height: 56px;
+            border-width: 5px;
+        }
+
+        body.is-mobile .spinner::after {
+            inset: -9px;
+            border-width: 2px;
+        }
+
+        body.is-mobile .loader-title {
+            width: 100%;
+            max-width: 330px;
+            font-size: 24px;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        body.is-mobile .loader-progress {
+            width: 100%;
+            max-width: 330px;
+            height: 10px;
+        }
+
+        body.is-mobile .loader-percent {
+            font-size: 38px;
+        }
+
+        body.is-mobile .loader-step {
+            font-size: 17px;
+            padding: 8px 16px;
+        }
+
+        body.is-mobile .sidebar .sidebar-credit {
+            padding-top: 1.25rem;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        body.is-mobile .sidebar .sidebar-credit a {
+            margin-top: 4px;
+            font-size: 17px;
+        }
+
+        body.is-mobile .mobile-only-nav {
+            display: flex;
+        }
+
+        body.is-mobile .mobile-menu-backdrop {
+            display: block;
+            position: fixed;
+            inset: 60px 0 0;
+            border: 0;
+            background: rgba(15, 23, 42, .42);
+            backdrop-filter: blur(3px);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 410;
+            transition: opacity .22s ease;
+        }
+
+        body.is-mobile.mobile-menu-open .mobile-menu-backdrop {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        body.is-mobile.mobile-menu-open {
+            overflow: hidden !important;
+        }
     </style>
 </head>
 
@@ -1463,6 +1795,12 @@
 
     <!-- ═══════════════  MOBILE TOP BAR  ═══════════════════════ -->
     <div class="mobile-topbar">
+        <button class="mobile-menu-toggle" type="button" onclick="toggleMobileMenu()"
+            aria-controls="main-sidebar" aria-expanded="false" aria-label="Buka menu navigasi">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
         <div class="logo-icon">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <rect x="6" y="4" width="12" height="17" rx="2.5" stroke="currentColor" stroke-width="2" />
@@ -1474,61 +1812,11 @@
         <span class="logo-text">Dasbor Survei LPM</span>
     </div>
 
-    <!-- ═══════════════  MOBILE BOTTOM NAV  ════════════════════ -->
-    <nav class="mobile-bottom-nav">
-        <button class="mob-nav-item active" onclick="showPage('overview')" id="mob-overview">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <rect x="3" y="3" width="7" height="7" rx="2" />
-                <rect x="14" y="3" width="7" height="7" rx="2" />
-                <rect x="3" y="14" width="7" height="7" rx="2" />
-                <rect x="14" y="14" width="7" height="7" rx="2" />
-            </svg>
-            Overview
-        </button>
-        <button class="mob-nav-item" onclick="showPage('akademik')" id="mob-akademik">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M12 3L2 9l10 6 10-6-10-6z" />
-                <path d="M2 17l10 6 10-6" />
-            </svg>
-            Akademik
-        </button>
-        <button class="mob-nav-item" onclick="showPage('penunjang')" id="mob-penunjang">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <circle cx="9" cy="7" r="4" />
-                <path d="M1 21v-2a4 4 0 014-4h8a4 4 0 014 4v2" />
-                <circle cx="19" cy="11" r="3" />
-            </svg>
-            Penunjang
-        </button>
-        <button class="mob-nav-item" onclick="showPage('visualisasi-data')" id="mob-visualisasi-data">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M4 19V5" />
-                <path d="M8 17V9" />
-                <path d="M12 17V7" />
-                <path d="M16 17v-5" />
-                <path d="M20 17V8" />
-            </svg>
-            Visual
-        </button>
-        <button class="mob-nav-item" onclick="showPage('layanan-unit')" id="mob-layanan-unit">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M4 5h16" />
-                <path d="M4 12h16" />
-                <path d="M4 19h10" />
-            </svg>
-            Layanan
-        </button>
-        <button class="mob-nav-item" onclick="showPage('student-satisfaction')" id="mob-student-satisfaction">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <path d="M12 4.5a4 4 0 014 4c0 3-4 6.5-4 6.5s-4-3.5-4-6.5a4 4 0 014-4z" />
-                <path d="M4 20h16" />
-            </svg>
-            Student
-        </button>
-    </nav>
+    <button class="mobile-menu-backdrop" type="button" onclick="closeMobileMenu(true)"
+        aria-label="Tutup menu navigasi"></button>
 
     <!-- ═══════════════════════  SIDEBAR  ═══════════════════════ -->
-    <nav class="sidebar">
+    <nav class="sidebar" id="main-sidebar" aria-label="Navigasi utama">
         <div class="logo">
             <div class="logo-icon">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -1555,10 +1843,20 @@
         </div>
 
         <div class="nav-subgroup" id="nav-survey-submenu">
+            <div class="nav-item sub-item mobile-only-nav" onclick="showPage('overview')" id="nav-mobile-overview">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="1" y="1" width="6" height="6" rx="1.5" />
+                    <rect x="9" y="1" width="6" height="6" rx="1.5" />
+                    <rect x="1" y="9" width="6" height="6" rx="1.5" />
+                    <rect x="9" y="9" width="6" height="6" rx="1.5" />
+                </svg>
+                Overview Survei Serentak
+            </div>
+
             <div class="nav-item sub-item" onclick="showPage('akademik')" id="nav-akademik">
-                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M8 1.5L1 5.5l7 4 7-4-7-4z" />
-                    <path d="M1 9.5l7 4 7-4" />
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M8 1.5 1 5.4 8 9.3l7-3.9L8 1.5z" />
+                    <path d="M3.2 8.1v3.1C3.2 12.8 5.3 14 8 14s4.8-1.2 4.8-2.8V8.1L8 10.8 3.2 8.1z" opacity=".72" />
                 </svg>
                 Unit Akademik
             </div>
@@ -1567,39 +1865,53 @@
                 <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
                     <circle cx="5.5" cy="5" r="2.5" />
                     <circle cx="11" cy="7.5" r="2" />
-                    <path d="M0 13.5c0-2.5 11-2.5 11 0" fill="none" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M1 14c0-2.5 1.8-4 4.5-4s4.5 1.5 4.5 4H1z" />
+                    <path d="M9.2 13.8c.2-1.8 1.3-2.9 3.3-2.9 1.7 0 2.8.9 3.2 2.9H9.2z" opacity=".65" />
                 </svg>
                 Unit Penunjang
             </div>
         </div>
 
         <div class="nav-item has-sub" onclick="showVisualMenu()" id="nav-visualisasi-data" aria-expanded="false">
-            <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M2 13.5V2.5" />
-                <path d="M5.5 12V6" />
-                <path d="M9 12V3.5" />
-                <path d="M12.5 12V7.5" />
+            <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                <rect x="1.5" y="3" width="2.3" height="10.5" rx="1.15" />
+                <rect x="5.2" y="6" width="2.3" height="7.5" rx="1.15" />
+                <rect x="8.9" y="1.5" width="2.3" height="12" rx="1.15" />
+                <rect x="12.6" y="7.5" width="2.3" height="6" rx="1.15" />
             </svg>
             <span class="nav-text">Visualisasi Data</span>
             <span class="nav-caret" aria-hidden="true"></span>
         </div>
 
         <div class="nav-subgroup" id="nav-visual-submenu">
+            <div class="nav-item sub-item mobile-only-nav" onclick="showPage('visualisasi-data')" id="nav-mobile-visualisasi-data">
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="1.5" y="3" width="2.3" height="10.5" rx="1.15" />
+                    <rect x="5.2" y="6" width="2.3" height="7.5" rx="1.15" />
+                    <rect x="8.9" y="1.5" width="2.3" height="12" rx="1.15" />
+                    <rect x="12.6" y="7.5" width="2.3" height="6" rx="1.15" />
+                </svg>
+                Overview Visualisasi Data
+            </div>
+
             <div class="nav-item sub-item" onclick="showPage('layanan-unit')" id="nav-layanan-unit">
-                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M2 3.5h12" />
-                    <path d="M2 8h12" />
-                    <path d="M2 12.5h8" />
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <circle cx="2.5" cy="3.5" r="1" />
+                    <circle cx="2.5" cy="8" r="1" />
+                    <circle cx="2.5" cy="12.5" r="1" />
+                    <rect x="5" y="2.7" width="9" height="1.6" rx=".8" />
+                    <rect x="5" y="7.2" width="9" height="1.6" rx=".8" />
+                    <rect x="5" y="11.7" width="6.5" height="1.6" rx=".8" />
                 </svg>
                 Layanan Unit
             </div>
 
             <div class="nav-item sub-item" onclick="showPage('student-satisfaction')" id="nav-student-satisfaction">
-                <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M2 12.5h12" />
-                    <path d="M3.5 11V6" />
-                    <path d="M7 11V3.5" />
-                    <path d="M10.5 11V5" />
+                <svg class="nav-icon" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="1.5" y="12.2" width="13" height="1.8" rx=".9" opacity=".55" />
+                    <rect x="3" y="6" width="2.3" height="6.8" rx="1.15" />
+                    <rect x="6.8" y="3.2" width="2.3" height="9.6" rx="1.15" />
+                    <rect x="10.6" y="5" width="2.3" height="7.8" rx="1.15" />
                 </svg>
                 Student Satisfaction
             </div>
@@ -2976,12 +3288,49 @@
             visual.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
         }
 
+        function setMobileMenu(open, restoreFocus) {
+            var mobile = isMobileDevice();
+            var shouldOpen = !!open && mobile;
+            var toggle = document.querySelector('.mobile-menu-toggle');
+            var sidebar = document.getElementById('main-sidebar');
+
+            document.body.classList.toggle('mobile-menu-open', shouldOpen);
+
+            if (toggle) {
+                toggle.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+                toggle.setAttribute('aria-label', shouldOpen ? 'Tutup menu navigasi' : 'Buka menu navigasi');
+            }
+
+            if (sidebar) {
+                if (mobile) sidebar.setAttribute('aria-hidden', shouldOpen ? 'false' : 'true');
+                else sidebar.removeAttribute('aria-hidden');
+            }
+
+            if (!shouldOpen && restoreFocus && toggle) toggle.focus();
+        }
+
+        function toggleMobileMenu() {
+            setMobileMenu(!document.body.classList.contains('mobile-menu-open'), false);
+        }
+
+        function closeMobileMenu(restoreFocus) {
+            setMobileMenu(false, !!restoreFocus);
+        }
+
         function showOverviewMenu() {
+            if (isMobileDevice()) {
+                toggleSurveyMenu();
+                return;
+            }
             showPage('overview');
             toggleSurveyMenu();
         }
 
         function showVisualMenu() {
+            if (isMobileDevice()) {
+                toggleVisualMenu();
+                return;
+            }
             showPage('visualisasi-data');
             toggleVisualMenu(true);
         }
@@ -2990,9 +3339,8 @@
             ['overview', 'akademik', 'penunjang', 'visualisasi-data', 'layanan-unit', 'student-satisfaction'].forEach(function (p) {
                 document.getElementById('page-' + p).style.display = p === page ? '' : 'none';
                 document.getElementById('nav-' + p).classList.toggle('active', p === page);
-                // Mobile bottom nav
-                var mob = document.getElementById('mob-' + p);
-                if (mob) mob.classList.toggle('active', p === page);
+                var mobileDrawerItem = document.getElementById('nav-mobile-' + p);
+                if (mobileDrawerItem) mobileDrawerItem.classList.toggle('active', p === page);
             });
 
             var visual = document.getElementById('nav-visualisasi-data');
@@ -3008,6 +3356,8 @@
                 toggleSurveyMenu(false);
                 toggleVisualMenu(false);
             }
+
+            if (isMobileDevice()) closeMobileMenu(false);
         }
 
         // ── Escape HTML ─────────────────────────────────────────────
@@ -3608,11 +3958,14 @@
             return false;
         }
         function checkMobile() {
-            if (isMobileDevice()) {
+            var mobile = isMobileDevice();
+            if (mobile) {
                 document.body.classList.add('is-mobile');
             } else {
                 document.body.classList.remove('is-mobile');
+                document.body.classList.remove('mobile-menu-open');
             }
+            setMobileMenu(document.body.classList.contains('mobile-menu-open'), false);
             applyViewportScaleFix();
         }
 
@@ -3621,14 +3974,22 @@
         // On a 393px iPhone, content renders at ~40% size.
         // Fix: zoom body by the ratio so visual output matches physical screen.
         var _gasZoomApplied = false;
+        function resetMobileFixedWidths() {
+            ['.mobile-topbar', '.mobile-menu-backdrop'].forEach(function (selector) {
+                var element = document.querySelector(selector);
+                if (!element) return;
+                element.style.removeProperty('width');
+                element.style.removeProperty('right');
+            });
+        }
+
         function applyViewportScaleFix() {
             if (!document.body) return;
             if (!isMobileDevice()) {
-                if (_gasZoomApplied) {
-                    document.body.style.zoom = '';
-                    document.body.style.setProperty('width', '', '');
-                    _gasZoomApplied = false;
-                }
+                document.body.style.zoom = '';
+                document.body.style.removeProperty('width');
+                resetMobileFixedWidths();
+                _gasZoomApplied = false;
                 return;
             }
             var screenW = screen.width || 393;
@@ -3645,17 +4006,23 @@
                 // Fixed-position elements need explicit width in zoom context
                 var screenPx = screenW + 'px';
                 var topbar = document.querySelector('.mobile-topbar');
-                var botnav = document.querySelector('.mobile-bottom-nav');
+                var backdrop = document.querySelector('.mobile-menu-backdrop');
                 if (topbar) { topbar.style.setProperty('width', screenPx, 'important'); topbar.style.right = 'auto'; }
-                if (botnav) { botnav.style.setProperty('width', screenPx, 'important'); botnav.style.right = 'auto'; }
+                if (backdrop) { backdrop.style.setProperty('width', screenPx, 'important'); backdrop.style.right = 'auto'; }
             } else if (_gasZoomApplied) {
                 document.body.style.zoom = '';
-                document.body.style.setProperty('width', '', '');
+                document.body.style.removeProperty('width');
+                resetMobileFixedWidths();
                 _gasZoomApplied = false;
             }
         }
 
         checkMobile();
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && document.body.classList.contains('mobile-menu-open')) {
+                closeMobileMenu(true);
+            }
+        });
         window.addEventListener('resize', checkMobile);
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', checkMobile);
