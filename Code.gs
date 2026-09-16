@@ -11,6 +11,7 @@ var SHEET_PENUNJANG = "Leaderboard Penunjang";
 var LAYANAN_UNIT_SPREADSHEET_ID = "1fqgPVZPaxyOx7PzhsbPwcRXKSqphHelv63hNFmHyps4";
 var SHEET_LAYANAN_UNIT = "Survei Kualitas Layanan Unit-Unit di UNPAR";
 var SHEET_STUDENT_SATISFACTION = "Survei Kepuasan Mahasiswa";
+var SHEET_GUEST_LECTURE = "Survei Kepuasan Kuliah Tamu";
 var SURVEY_SUMMARY_SHEETS = [
   { name: "Survei Brand Index", timestampCol: 1 },
   { name: "Survei Kepuasan Layanan UIS Station", timestampCol: 1 },
@@ -262,6 +263,177 @@ function parseIndexScore_(value) {
   return Math.max(0, Math.min(1, numeric));
 }
 
+function parseFivePointScore_(value) {
+  if (value === null || value === undefined || value === "") return null;
+
+  var numeric = typeof value === "number"
+    ? value
+    : parseFloat(String(value).trim().replace(",", "."));
+
+  if (isNaN(numeric)) return null;
+  return Math.max(1, Math.min(5, numeric));
+}
+
+function formatSurveyDate_(value) {
+  var date = null;
+
+  if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
+    date = value;
+  } else if (typeof value === "number" && value > 20000) {
+    date = new Date(Date.UTC(1899, 11, 30) + value * 24 * 60 * 60 * 1000);
+  } else if (value) {
+    var parsed = new Date(value);
+    if (!isNaN(parsed.getTime())) date = parsed;
+  }
+
+  if (!date) return { year: null, label: "(Tanggal tidak terbaca)" };
+
+  var timezone = Session.getScriptTimeZone() || "Asia/Jakarta";
+  return {
+    year: parseInt(Utilities.formatDate(date, timezone, "yyyy"), 10),
+    label: Utilities.formatDate(date, timezone, "dd MMM yyyy")
+  };
+}
+
+function getGuestLectureData() {
+  var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_GUEST_LECTURE);
+
+  if (!sheet) {
+    throw new Error("Sheet '" + SHEET_GUEST_LECTURE + "' tidak ditemukan.");
+  }
+
+  var lastRow = sheet.getLastRow();
+  var lastCol = sheet.getLastColumn();
+  if (lastRow < 2) {
+    return { rows: [], years: [], summary: { total: 0, avg: null, positiveRate: null, metrics: [], distributions: [], events: [], faculties: [], speakers: [], feedback: [] } };
+  }
+
+  var dataRows = sheet.getRange(2, 1, lastRow - 1, Math.max(lastCol, 13)).getValues();
+  var metricNames = [
+    "Organisasi kegiatan",
+    "Fasilitas atau platform",
+    "Relevansi penerapan ilmu",
+    "Peningkatan pemahaman isu"
+  ];
+  var yearsMap = {};
+  var rows = [];
+
+  dataRows.forEach(function(row, idx) {
+    var timestamp = row[0];
+    var eventName = String(row[2] || "").trim();
+    var organizer = String(row[4] || "").trim();
+    var speaker = String(row[5] || "").trim();
+    var scores = [8, 9, 10, 11].map(function(col) {
+      return parseFivePointScore_(row[col - 1]);
+    });
+
+    if (!timestamp && !eventName && !organizer && !speaker && !scores.some(function(score) { return score !== null; })) return;
+
+    var responseYear = getYearFromTimestamp_(timestamp);
+    var eventDate = formatSurveyDate_(row[3]);
+    var validScores = scores.filter(function(score) { return score !== null; });
+    var average = validScores.length
+      ? validScores.reduce(function(sum, score) { return sum + score; }, 0) / validScores.length
+      : null;
+
+    if (responseYear) yearsMap[responseYear] = true;
+    rows.push({
+      rowNo: idx + 2,
+      year: responseYear,
+      eventDateYear: eventDate.year,
+      eventDate: eventDate.label,
+      eventName: eventName || "(Nama acara tidak diisi)",
+      organizer: organizer || "(Fakultas/unit tidak diisi)",
+      speaker: speaker || "(Narasumber tidak diisi)",
+      affiliation: String(row[6] || "").trim() || "(Afiliasi tidak diisi)",
+      scores: scores,
+      average: average,
+      takeaway: String(row[11] || "").trim(),
+      suggestion: String(row[12] || "").trim()
+    });
+  });
+
+  var validRows = rows.filter(function(row) { return row.average !== null; });
+  var allScores = [];
+  rows.forEach(function(row) {
+    row.scores.forEach(function(score) { if (score !== null) allScores.push(score); });
+  });
+  var average = validRows.length
+    ? validRows.reduce(function(sum, row) { return sum + row.average; }, 0) / validRows.length
+    : null;
+  var positiveScores = allScores.filter(function(score) { return score >= 4; }).length;
+
+  var metrics = metricNames.map(function(name, metricIndex) {
+    var scores = rows.map(function(row) { return row.scores[metricIndex]; }).filter(function(score) { return score !== null; });
+    var metricAverage = scores.length
+      ? scores.reduce(function(sum, score) { return sum + score; }, 0) / scores.length
+      : null;
+    return {
+      name: name,
+      average: metricAverage,
+      positiveRate: scores.length ? scores.filter(function(score) { return score >= 4; }).length / scores.length : null,
+      responses: scores.length
+    };
+  });
+
+  var distributions = [1, 2, 3, 4, 5].map(function(score) {
+    return { score: score, count: allScores.filter(function(value) { return value === score; }).length };
+  });
+
+  function groupedCount(key) {
+    var counts = {};
+    rows.forEach(function(row) {
+      var value = row[key] || "(Tidak diisi)";
+      counts[value] = (counts[value] || 0) + 1;
+    });
+    return Object.keys(counts).map(function(name) {
+      return { name: name, count: counts[name] };
+    }).sort(function(a, b) { return b.count - a.count || a.name.localeCompare(b.name); });
+  }
+
+  var eventGroups = {};
+  rows.forEach(function(row) {
+    if (!eventGroups[row.eventName]) eventGroups[row.eventName] = [];
+    eventGroups[row.eventName].push(row);
+  });
+  var events = Object.keys(eventGroups).map(function(name) {
+    var group = eventGroups[name];
+    var scored = group.filter(function(row) { return row.average !== null; });
+    var eventAverage = scored.length
+      ? scored.reduce(function(sum, row) { return sum + row.average; }, 0) / scored.length
+      : null;
+    return {
+      name: name,
+      count: group.length,
+      average: eventAverage,
+      positiveRate: eventAverage === null ? null : group.reduce(function(sum, row) {
+        return sum + row.scores.filter(function(score) { return score !== null && score >= 4; }).length;
+      }, 0) / Math.max(1, group.reduce(function(sum, row) { return sum + row.scores.filter(function(score) { return score !== null; }).length; }, 0))
+    };
+  }).sort(function(a, b) { return b.count - a.count || (b.average || 0) - (a.average || 0); });
+
+  var feedback = rows.filter(function(row) { return row.takeaway || row.suggestion; }).slice(0, 20).map(function(row) {
+    return { eventName: row.eventName, takeaway: row.takeaway, suggestion: row.suggestion };
+  });
+
+  return {
+    rows: rows,
+    years: Object.keys(yearsMap).map(function(year) { return parseInt(year, 10); }).sort(function(a, b) { return b - a; }),
+    summary: {
+      total: rows.length,
+      avg: average,
+      positiveRate: allScores.length ? positiveScores / allScores.length : null,
+      metrics: metrics,
+      distributions: distributions,
+      events: events,
+      faculties: groupedCount("organizer"),
+      speakers: groupedCount("speaker"),
+      feedback: feedback
+    }
+  };
+}
+
 function getStudentSatisfactionQuestions_() {
   return [
     { col: 5, category: "Pengajaran", question: "Perkuliahan diselenggarakan sesuai jadwal dan tepat waktu." },
@@ -439,6 +611,7 @@ function getAllData() {
     penunjang: getSheetData_(SHEET_PENUNJANG),
     visualisasiSummary: getSurveySummaryData(),
     layananUnit: getLayananUnitData(),
-    studentSatisfaction: getStudentSatisfactionData()
+    studentSatisfaction: getStudentSatisfactionData(),
+    guestLecture: getGuestLectureData()
   };
 }
