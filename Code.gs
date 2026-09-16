@@ -20,7 +20,8 @@ var SURVEY_SUMMARY_SHEETS = [
   { name: "Survei Entry Study", timestampCol: 1 },
   { name: "Survei User Study", timestampCol: 1 },
   { name: "Survei Kualitas Layanan Unit-Unit di UNPAR", timestampCol: 1 },
-  { name: "Survei Kepuasan Mahasiswa", timestampCol: 1 }
+  { name: "Survei Kepuasan Mahasiswa", timestampCol: 1 },
+  { name: "Survei Kepuasan Kuliah Tamu", timestampCol: 1 }
 ];
 
 // ------------------------------------------------------------
