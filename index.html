@@ -2455,7 +2455,13 @@
                         <input class="search-box" type="text" id="gl-search" placeholder="Cari acara, unit, atau feedback..." oninput="applyGuestLectureFilters()" />
                     </div>
 
-                    <!-- CARD 1: Rata-rata Skor Keseluruhan -->
+                    <div class="stat-card" style="margin-bottom: 1.5rem; max-width: 420px;">
+                        <div class="stat-label">Rata-rata Total</div>
+                        <div class="stat-val" id="gl-total-average">-</div>
+                        <div class="stat-sub" id="gl-total-average-meta">Dari 4 pertanyaan kualitatif</div>
+                    </div>
+
+                    <!-- CARD 1: Rata-rata Skor per Pertanyaan -->
                     <div class="table-card" style="margin-bottom: 1.5rem;">
                         <div class="table-header">
                             <span class="table-header-title">Rata-rata Skor per Pertanyaan (1-5)</span>
@@ -2489,27 +2495,6 @@
                             <thead><tr><th>#</th><th>Fakultas/Unit</th><th>Responden</th><th>Organisasi</th><th>Fasilitas</th><th>Relevansi</th><th>Pemahaman</th></tr></thead>
                             <tbody id="gl-question-tbody"></tbody>
                         </table>
-                    </div>
-
-                    <!-- CARD 4: Feedback Responden -->
-                    <div class="table-card">
-                        <div class="table-header">
-                            <span class="table-header-title">Feedback Responden</span>
-                            <span class="table-badge" id="gl-feedback-count">- jawaban</span>
-                        </div>
-                        <div style="overflow-x: auto; max-height: 620px; overflow-y: auto;">
-                            <table class="guest-feedback-table">
-                                <thead><tr><th>#</th><th>Unit</th><th>Acara</th><th>Key Takeaway</th><th>Saran/Masukan</th></tr></thead>
-                                <tbody id="gl-feedback-tbody"></tbody>
-                            </table>
-                        </div>
-                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 1rem 1.5rem; background: rgba(15, 81, 50, 0.02);">
-                            <span id="gl-feedback-info" style="font-size: 12px; color: var(--text-secondary); font-weight: 500;">-</span>
-                            <div style="display: flex; gap: 8px;">
-                                <button class="btn-cancel" onclick="prevFeedbackPage()" id="btn-prev-feedback" style="padding: 8px 12px; font-size: 12px;">← Previous</button>
-                                <button class="btn-cancel" onclick="nextFeedbackPage()" id="btn-next-feedback" style="padding: 8px 12px; font-size: 12px;">Next →</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -3310,10 +3295,6 @@
                     document.getElementById('ss-question-tbody').innerHTML = html;
                 }
 
-                var glFeedbackPage = 0;
-                var glFeedbackPerPage = 20;
-                var glFeedbackRows = [];
-
                 function initGuestLecture(payload) {
                     payload = payload || { rows: [], years: [] };
                     dataGL = payload.rows || [];
@@ -3330,6 +3311,24 @@
                         '[Materi] Sejauh mana materi yang disampaikan memberikan gambaran nyata mengenai penerapan ilmu di dunia kerja atau masyarakat?',
                         '[Topik] Apakah topik yang dibahas meningkatkan pemahaman Anda terhadap isu-isu terkini di bidang studi Anda?'
                     ];
+
+                    var totalScores = [];
+                    rows.forEach(function(row) {
+                        if (Array.isArray(row.scores)) {
+                            row.scores.forEach(function(score, index) {
+                                if (!isNull(score) && index < questionNames.length) totalScores.push(score);
+                            });
+                        }
+                    });
+                    var overallAverage = totalScores.length ? totalScores.reduce(function(sum, score) { return sum + score; }, 0) / totalScores.length : null;
+                    var totalAverageEl = document.getElementById('gl-total-average');
+                    var totalAverageMetaEl = document.getElementById('gl-total-average-meta');
+                    if (totalAverageEl) {
+                        totalAverageEl.innerHTML = overallAverage === null ? '-' : '<span class="score-pill ' + scoreFiveClass(overallAverage) + '" style="font-size:18px;padding:8px 12px;">' + overallAverage.toFixed(2) + '/5</span>';
+                    }
+                    if (totalAverageMetaEl) {
+                        totalAverageMetaEl.textContent = totalScores.length ? 'Dari ' + totalScores.length + ' penilaian dari 4 pertanyaan kualitatif' : 'Dari 4 pertanyaan kualitatif';
+                    }
 
                     // CARD 1: Jumlah Responden Acara per Unit
                     var unitGroups = {};
@@ -3375,10 +3374,6 @@
                             return '<td><span class="score-pill ' + scoreFiveClass(avg) + '">' + (avg === null ? '-' : avg.toFixed(2)) + '</span></td>';
                         }).join('') + '</tr>';
                     }).join('') : '<tr><td colspan="7" style="color:#777">Tidak ada data untuk filter ini.</td></tr>';
-
-                    glFeedbackRows = rows.filter(function(row) { return row.takeaway || row.suggestion; });
-                    glFeedbackPage = 0;
-                    renderFeedbackPage();
                 }
 
                 function scoreFiveClass(score) {
@@ -3398,37 +3393,6 @@
                         return true;
                     });
                     renderGuestLecture();
-                }
-
-                function renderFeedbackPage() {
-                    var start = glFeedbackPage * glFeedbackPerPage;
-                    var end = Math.min(start + glFeedbackPerPage, glFeedbackRows.length);
-                    var pageRows = glFeedbackRows.slice(start, end);
-                    document.getElementById('gl-feedback-count').textContent = glFeedbackRows.length + ' jawaban';
-                    document.getElementById('gl-feedback-tbody').innerHTML = pageRows.length ? pageRows.map(function(row, index) {
-                        return '<tr><td>' + (start + index + 1) + '</td><td style="font-weight:600">' + esc(row.organizer || '-') + '</td><td style="font-weight:600">' + esc(row.eventName || '-') + '</td><td class="feedback-text">' + esc(row.takeaway || '-') + '</td><td class="feedback-text">' + esc(row.suggestion || '-') + '</td></tr>';
-                    }).join('') : '<tr><td colspan="5" style="color:#777">Tidak ada feedback untuk filter ini.</td></tr>';
-
-                    var totalPages = Math.ceil(glFeedbackRows.length / glFeedbackPerPage);
-                    document.getElementById('gl-feedback-info').textContent = glFeedbackRows.length
-                        ? 'Halaman ' + (glFeedbackPage + 1) + ' dari ' + totalPages + ' - menampilkan ' + (start + 1) + '-' + end
-                        : '-';
-                    document.getElementById('btn-prev-feedback').disabled = glFeedbackPage === 0;
-                    document.getElementById('btn-next-feedback').disabled = end >= glFeedbackRows.length;
-                }
-
-                function prevFeedbackPage() {
-                    if (glFeedbackPage > 0) {
-                        glFeedbackPage--;
-                        renderFeedbackPage();
-                    }
-                }
-
-                function nextFeedbackPage() {
-                    if ((glFeedbackPage + 1) * glFeedbackPerPage < glFeedbackRows.length) {
-                        glFeedbackPage++;
-                        renderFeedbackPage();
-                    }
                 }
 
                 function filterTable(type, q) {
