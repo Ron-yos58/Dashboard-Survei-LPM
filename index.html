@@ -2449,10 +2449,12 @@
                     </div>
 
                     <div class="filter-bar">
+                        <select class="filter-select" id="gl-year" onchange="applyGuestLectureFilters()">
+                            <option value="all">Semua Tahun</option>
+                        </select>
                         <select class="filter-select" id="gl-unit-filter" onchange="applyGuestLectureFilters()">
                             <option value="all">Semua Unit</option>
                         </select>
-                        <input class="search-box" type="text" id="gl-search" placeholder="Cari acara, unit, atau feedback..." oninput="applyGuestLectureFilters()" />
                     </div>
 
                     <div class="stat-card" style="margin-bottom: 1.5rem; max-width: 420px;">
@@ -3299,6 +3301,12 @@
                     payload = payload || { rows: [], years: [] };
                     dataGL = payload.rows || [];
                     filteredGL = dataGL.slice();
+
+                    var years = payload.years && payload.years.length
+                        ? payload.years
+                        : uniqueValues(dataGL, 'year').sort(function (a, b) { return b - a; });
+
+                    setSelectOptions('gl-year', years, 'Semua Tahun');
                     setSelectOptions('gl-unit-filter', uniqueValues(dataGL, 'organizer'), 'Semua Unit');
                     renderGuestLecture();
                 }
@@ -3382,14 +3390,11 @@
                 }
 
                 function applyGuestLectureFilters() {
+                    var year = document.getElementById('gl-year').value;
                     var unit = document.getElementById('gl-unit-filter').value;
-                    var query = (document.getElementById('gl-search').value || '').toLowerCase().trim();
                     filteredGL = dataGL.filter(function(row) {
+                        if (year !== 'all' && String(row.year) !== year) return false;
                         if (unit !== 'all' && (row.organizer || '(Unit tidak diisi)') !== unit) return false;
-                        if (query) {
-                            var haystack = [row.eventName, row.organizer, row.speaker, row.affiliation, row.takeaway, row.suggestion].join(' ').toLowerCase();
-                            if (haystack.indexOf(query) === -1) return false;
-                        }
                         return true;
                     });
                     renderGuestLecture();
