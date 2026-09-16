@@ -2457,10 +2457,27 @@
                         </select>
                     </div>
 
-                    <div class="stat-card" style="margin-bottom: 1.5rem; max-width: 420px;">
-                        <div class="stat-label">Rata-rata Total</div>
-                        <div class="stat-val" id="gl-total-average">-</div>
-                        <div class="stat-sub" id="gl-total-average-meta">Dari 4 pertanyaan kualitatif</div>
+                    <div class="stat-row four">
+                        <div class="stat-card">
+                            <div class="stat-label">Total Responden</div>
+                            <div class="stat-val" id="gl-total-respondents">-</div>
+                            <div class="stat-sub">jawaban terfilter</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Rata-rata Total</div>
+                            <div class="stat-val" id="gl-total-average">-</div>
+                            <div class="stat-sub" id="gl-total-average-meta">Dari 4 pertanyaan kualitatif</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Prodi Terbanyak</div>
+                            <div class="stat-val" id="gl-top-program">-</div>
+                            <div class="stat-sub" id="gl-top-program-meta">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Kategori Terendah</div>
+                            <div class="stat-val" id="gl-low-category">-</div>
+                            <div class="stat-sub" id="gl-low-category-meta">-</div>
+                        </div>
                     </div>
 
                     <!-- CARD 1: Rata-rata Skor per Pertanyaan -->
@@ -3319,6 +3336,7 @@
                         '[Materi] Sejauh mana materi yang disampaikan memberikan gambaran nyata mengenai penerapan ilmu di dunia kerja atau masyarakat?',
                         '[Topik] Apakah topik yang dibahas meningkatkan pemahaman Anda terhadap isu-isu terkini di bidang studi Anda?'
                     ];
+                    var questionCategories = ['Organisasi', 'Fasilitas', 'Materi', 'Topik'];
 
                     var totalScores = [];
                     rows.forEach(function(row) {
@@ -3332,11 +3350,12 @@
                     var totalAverageEl = document.getElementById('gl-total-average');
                     var totalAverageMetaEl = document.getElementById('gl-total-average-meta');
                     if (totalAverageEl) {
-                        totalAverageEl.innerHTML = overallAverage === null ? '-' : '<span class="score-pill ' + scoreFiveClass(overallAverage) + '" style="font-size:18px;padding:8px 12px;">' + overallAverage.toFixed(2) + '/5</span>';
+                        totalAverageEl.textContent = overallAverage === null ? '-' : overallAverage.toFixed(2) + '/5';
                     }
                     if (totalAverageMetaEl) {
                         totalAverageMetaEl.textContent = totalScores.length ? 'Dari ' + totalScores.length + ' penilaian dari 4 pertanyaan kualitatif' : 'Dari 4 pertanyaan kualitatif';
                     }
+                    document.getElementById('gl-total-respondents').textContent = rows.length;
 
                     // CARD 1: Jumlah Responden Acara per Unit
                     var unitGroups = {};
@@ -3348,6 +3367,11 @@
                     var unitItems = Object.keys(unitGroups).map(function(name) {
                         return { name: name, count: unitGroups[name] };
                     }).sort(function(a, b) { return b.count - a.count; });
+                    var topUnit = unitItems[0] || null;
+                    var topProgramEl = document.getElementById('gl-top-program');
+                    topProgramEl.textContent = topUnit ? shortText(topUnit.name, 16) : '-';
+                    topProgramEl.title = topUnit ? topUnit.name : '';
+                    document.getElementById('gl-top-program-meta').textContent = topUnit ? topUnit.count + ' responden' : '-';
                     document.getElementById('gl-unit-count').textContent = unitItems.length + ' unit';
                     document.getElementById('gl-unit-tbody').innerHTML = unitItems.length ? unitItems.map(function(item, index) {
                         return '<tr><td><div class="rank-num">' + (index + 1) + '</div></td><td style="font-weight:600">' + esc(item.name) + '</td><td>' + item.count + '</td></tr>';
@@ -3357,8 +3381,15 @@
                     var questionItems = questionNames.map(function(name, index) {
                         var questionScores = rows.map(function(row) { return row.scores && row.scores[index]; }).filter(function(score) { return !isNull(score); });
                         var avg = questionScores.length ? questionScores.reduce(function(sum, score) { return sum + score; }, 0) / questionScores.length : null;
-                        return { name: name, count: questionScores.length, average: avg };
+                        return { name: name, category: questionCategories[index], count: questionScores.length, average: avg };
                     });
+                    var lowestQuestion = questionItems.filter(function(item) { return !isNull(item.average); }).sort(function(a, b) {
+                        return a.average - b.average;
+                    })[0] || null;
+                    var lowCategoryEl = document.getElementById('gl-low-category');
+                    lowCategoryEl.textContent = lowestQuestion ? lowestQuestion.category : '-';
+                    lowCategoryEl.title = lowestQuestion ? lowestQuestion.name : '';
+                    document.getElementById('gl-low-category-meta').textContent = lowestQuestion ? lowestQuestion.average.toFixed(2) + '/5' : '-';
                     document.getElementById('gl-overall-question-count').textContent = questionItems.length + ' pertanyaan';
                     document.getElementById('gl-overall-question-tbody').innerHTML = questionItems.map(function(item, index) {
                         return '<tr><td><div class="rank-num">' + (index + 1) + '</div></td><td style="font-weight:600">' + esc(item.name) + '</td><td>' + item.count + '</td><td><span class="score-pill ' + scoreFiveClass(item.average) + '">' + (item.average === null ? '-' : item.average.toFixed(2)) + '/5</span></td></tr>';
