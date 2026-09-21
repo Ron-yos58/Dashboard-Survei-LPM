@@ -2434,7 +2434,7 @@
                             <span class="table-badge" id="gl-overall-question-count">- pertanyaan</span>
                         </div>
                         <table class="mobile-fit-table">
-                            <thead><tr><th>#</th><th>Pertanyaan</th><th>Responden</th><th>Rata-rata</th></tr></thead>
+                            <thead><tr><th>#</th><th>Pertanyaan</th><th>Responden</th><th>Rata-rata</th><th>BAIK+SANGAT BAIK</th></tr></thead>
                             <tbody id="gl-overall-question-tbody"></tbody>
                         </table>
                     </div>
@@ -3328,7 +3328,10 @@
                     var questionItems = questionNames.map(function(name, index) {
                         var questionScores = rows.map(function(row) { return row.scores && row.scores[index]; }).filter(function(score) { return !isNull(score); });
                         var avg = questionScores.length ? questionScores.reduce(function(sum, score) { return sum + score; }, 0) / questionScores.length : null;
-                        return { name: name, category: questionCategories[index], count: questionScores.length, average: avg };
+                        var positiveRate = questionScores.length
+                            ? questionScores.filter(function(score) { return score >= 4; }).length / questionScores.length
+                            : null;
+                        return { name: name, category: questionCategories[index], count: questionScores.length, average: avg, positiveRate: positiveRate };
                     });
                     var lowestQuestion = questionItems.filter(function(item) { return !isNull(item.average); }).sort(function(a, b) {
                         return a.average - b.average;
@@ -3339,7 +3342,9 @@
                     document.getElementById('gl-low-category-meta').textContent = lowestQuestion ? lowestQuestion.average.toFixed(2) + '/5' : '-';
                     document.getElementById('gl-overall-question-count').textContent = questionItems.length + ' pertanyaan';
                     document.getElementById('gl-overall-question-tbody').innerHTML = questionItems.map(function(item, index) {
-                        return '<tr><td><div class="rank-num">' + (index + 1) + '</div></td><td style="font-weight:600">' + esc(item.name) + '</td><td>' + item.count + '</td><td><span class="score-pill ' + scoreFiveClass(item.average) + '">' + (item.average === null ? '-' : item.average.toFixed(2)) + '/5</span></td></tr>';
+                        var positiveWidth = item.positiveRate === null ? 0 : item.positiveRate * 100;
+                        var positiveLabel = item.positiveRate === null ? '-' : Math.round(positiveWidth) + '%';
+                        return '<tr><td><div class="rank-num">' + (index + 1) + '</div></td><td style="font-weight:600">' + esc(item.name) + '</td><td>' + item.count + '</td><td><span class="score-pill ' + scoreFiveClass(item.average) + '">' + (item.average === null ? '-' : item.average.toFixed(2)) + '/5</span></td><td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:' + positiveWidth + '%;background:' + barClr(item.positiveRate) + '"></div></div><span class="score-text" style="color:' + color(item.positiveRate) + '">' + positiveLabel + '</span></div></td></tr>';
                     }).join('');
 
                     var unitQuestionGroups = groupRows(rows, function(row) { return row.organizer || '(Unit tidak diisi)'; });
