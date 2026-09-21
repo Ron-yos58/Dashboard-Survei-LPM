@@ -28,10 +28,16 @@ var SURVEY_SUMMARY_SHEETS = [
 // ------------------------------------------------------------
 // Entry point — serve the HTML page
 // ------------------------------------------------------------
-function doGet(e) {
+function doGet(request) {
+  var imageId = "1Lbl678Asv8fG3SDpohaiKbd67H7ZfgqY";
+  var pageTitle = "Dasbor Survei LPM";
+
   return HtmlService
-    .createHtmlOutputFromFile("index")
-    .setTitle("Dasbor Survei LPM")
+    .createTemplateFromFile("index")
+    .evaluate()
+    .setTitle(pageTitle)
+    .addMetaTag("viewport", "width=device-width, initial-scale=1")
+    .setFaviconUrl("https://drive.google.com/uc?id=" + imageId + "&export=download&format=png")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
