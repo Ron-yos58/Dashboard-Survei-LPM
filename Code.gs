@@ -32,7 +32,6 @@ function doGet(e) {
   return HtmlService
     .createHtmlOutputFromFile("index")
     .setTitle("Dasbor Survei LPM")
-    .setFaviconUrl("https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4cb.png")
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
