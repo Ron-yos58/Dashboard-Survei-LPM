@@ -2461,6 +2461,18 @@
                             <tbody id="gl-question-tbody"></tbody>
                         </table>
                     </div>
+
+                    <!-- CARD 4: Jumlah Responden per Bulan -->
+                    <div class="table-card" style="margin-bottom: 1.5rem;">
+                        <div class="table-header">
+                            <span class="table-header-title">Jumlah Responden per Bulan</span>
+                            <span class="table-badge" id="gl-month-count">- bulan</span>
+                        </div>
+                        <table class="mobile-fit-table">
+                            <thead><tr><th>Bulan</th><th>Responden</th></tr></thead>
+                            <tbody id="gl-month-tbody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
             </main>
@@ -3364,6 +3376,28 @@
                             return '<td><span class="score-pill ' + scoreFiveClass(avg) + '">' + (avg === null ? '-' : avg.toFixed(2)) + '</span></td>';
                         }).join('') + '</tr>';
                     }).join('') : '<tr><td colspan="7" style="color:#777">Tidak ada data untuk filter ini.</td></tr>';
+
+                    var monthGroups = {};
+                    rows.forEach(function(row) {
+                        var key = row.monthKey || 'unknown';
+                        if (!monthGroups[key]) {
+                            monthGroups[key] = {
+                                key: key,
+                                label: row.monthLabel || '(Bulan tidak terbaca)',
+                                count: 0
+                            };
+                        }
+                        monthGroups[key].count++;
+                    });
+                    var monthItems = Object.keys(monthGroups).map(function(key) { return monthGroups[key]; }).sort(function(a, b) {
+                        if (a.key === 'unknown') return 1;
+                        if (b.key === 'unknown') return -1;
+                        return a.key.localeCompare(b.key);
+                    });
+                    document.getElementById('gl-month-count').textContent = monthItems.length + ' bulan';
+                    document.getElementById('gl-month-tbody').innerHTML = monthItems.length ? monthItems.map(function(item) {
+                        return '<tr><td style="font-weight:600">' + esc(item.label) + '</td><td>' + item.count + '</td></tr>';
+                    }).join('') : '<tr><td colspan="2" style="color:#777">Tidak ada data bulan untuk filter ini.</td></tr>';
                 }
 
                 function scoreFiveClass(score) {

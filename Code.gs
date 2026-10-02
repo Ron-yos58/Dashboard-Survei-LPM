@@ -336,6 +336,7 @@ function getGuestLectureData() {
     if (!timestamp && !eventName && !organizer && !speaker && !scores.some(function(score) { return score !== null; })) return;
 
     var responseYear = getYearFromTimestamp_(timestamp);
+    var monthInfo = getMonthInfoFromTimestamp_(timestamp);
     var eventDate = formatSurveyDate_(row[3]);
     var validScores = scores.filter(function(score) { return score !== null; });
     var average = validScores.length
@@ -346,6 +347,9 @@ function getGuestLectureData() {
     rows.push({
       rowNo: idx + 2,
       year: responseYear,
+      month: monthInfo.month,
+      monthKey: monthInfo.monthKey,
+      monthLabel: monthInfo.monthLabel,
       eventDateYear: eventDate.year,
       eventDate: eventDate.label,
       eventName: eventName || "(Nama acara tidak diisi)",
