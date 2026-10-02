@@ -1790,6 +1790,114 @@
                 body.is-mobile.mobile-menu-open {
                     overflow: hidden !important;
                 }
+
+                /* ── Mobile size normalization (standard scale) ───────────
+                   Overrides the oversized mobile blocks above. */
+                @media(max-width:860px) {
+                    body { font-size: 15px }
+                    .mobile-topbar .logo-text { font-size: 16px }
+                    .page-title { font-size: 24px }
+                    .page-sub { font-size: 13px }
+                    .loader { font-size: 13px }
+                    .loader-title { font-size: 15px }
+                    .loader-percent { font-size: 24px }
+                    .loader-step { font-size: 11px; padding: 4px 12px }
+                    .spinner { width: 32px; height: 32px; border-width: 3px }
+                    .btn-download { font-size: 13px; padding: 10px 16px }
+                    .tab-btn { font-size: 13px; padding: 8px 12px }
+                    table { font-size: 13px }
+                    thead th { font-size: 11px; padding: 10px 12px }
+                    td { padding: 10px 12px }
+                    .score-pill { font-size: 12px; min-width: 48px }
+                    .score-text { font-size: 13px; min-width: 48px }
+                    .rank-num { width: 28px; height: 28px; font-size: 12px }
+                    .medal { font-size: 34px }
+                    .unit-name { font-size: 14px }
+                    .final-score { font-size: 32px }
+                    .kpi-chip { font-size: 11px; padding: 3px 8px }
+                    .stat-val { font-size: 28px }
+                    .stat-label { font-size: 12px }
+                    .stat-sub { font-size: 12px }
+                    .search-box, .filter-select { font-size: 13px; padding: 10px 14px }
+                    .legend-bar { font-size: 12px }
+                    .summary-note { font-size: 13px }
+                    .survey-name { font-size: 13px }
+                    .survey-meta { font-size: 11px }
+                    .insight-row { font-size: 13px }
+                    .insight-title { font-size: 13px }
+                    .insight-sub { font-size: 11px }
+                    .insight-row .score-pill { font-size: 12px; min-width: 48px }
+                    .mini-medal { font-size: 24px }
+                    .mini-name { font-size: 13px }
+                    .mini-score-label { font-size: 9px }
+                    .mini-score { font-size: 22px }
+                    .col-modal-title { font-size: 18px }
+                    .col-modal-sub { font-size: 13px }
+                    .col-check-item { font-size: 13px }
+                    .col-modal-select-all { font-size: 12px }
+                    .btn-cancel { font-size: 13px }
+                    .table-header-title { font-size: 14px }
+                    .table-badge { font-size: 11px; padding: 4px 10px }
+                    .trend-chip { font-size: 11px; min-width: 64px }
+                    .sidebar .nav-group-label { font-size: 11px }
+                    .sidebar .nav-item { font-size: 13px; padding: 10px 12px; gap: 10px }
+                    .sidebar .nav-item.sub-item { font-size: 12px; padding: 8px 10px }
+                    .sidebar .nav-icon { width: 16px; height: 16px }
+                    .sidebar .sidebar-credit { font-size: 11px }
+                    .sidebar .sidebar-credit a { font-size: 12px }
+                }
+
+                body.is-mobile { font-size: 15px }
+                body.is-mobile .mobile-topbar .logo-text { font-size: 16px }
+                body.is-mobile .page-title { font-size: 24px }
+                body.is-mobile .page-sub { font-size: 13px }
+                body.is-mobile .loader { font-size: 13px }
+                body.is-mobile .loader-title { font-size: 15px }
+                body.is-mobile .loader-percent { font-size: 24px }
+                body.is-mobile .loader-step { font-size: 11px; padding: 4px 12px }
+                body.is-mobile .spinner { width: 32px; height: 32px; border-width: 3px }
+                body.is-mobile .btn-download { font-size: 13px; padding: 10px 16px }
+                body.is-mobile .tab-btn { font-size: 13px; padding: 8px 12px }
+                body.is-mobile table { font-size: 13px }
+                body.is-mobile thead th { font-size: 11px; padding: 10px 12px }
+                body.is-mobile td { padding: 10px 12px }
+                body.is-mobile .score-pill { font-size: 12px; min-width: 48px }
+                body.is-mobile .score-text { font-size: 13px; min-width: 48px }
+                body.is-mobile .rank-num { width: 28px; height: 28px; font-size: 12px }
+                body.is-mobile .medal { font-size: 34px }
+                body.is-mobile .unit-name { font-size: 14px }
+                body.is-mobile .final-score { font-size: 32px }
+                body.is-mobile .kpi-chip { font-size: 11px; padding: 3px 8px }
+                body.is-mobile .stat-val { font-size: 28px }
+                body.is-mobile .stat-label { font-size: 12px }
+                body.is-mobile .stat-sub { font-size: 12px }
+                body.is-mobile .search-box, body.is-mobile .filter-select { font-size: 13px; padding: 10px 14px }
+                body.is-mobile .legend-bar { font-size: 12px }
+                body.is-mobile .summary-note { font-size: 13px }
+                body.is-mobile .survey-name { font-size: 13px }
+                body.is-mobile .survey-meta { font-size: 11px }
+                body.is-mobile .insight-row { font-size: 13px }
+                body.is-mobile .insight-title { font-size: 13px }
+                body.is-mobile .insight-sub { font-size: 11px }
+                body.is-mobile .insight-row .score-pill { font-size: 12px; min-width: 48px }
+                body.is-mobile .mini-medal { font-size: 24px }
+                body.is-mobile .mini-name { font-size: 13px }
+                body.is-mobile .mini-score-label { font-size: 9px }
+                body.is-mobile .mini-score { font-size: 22px }
+                body.is-mobile .col-modal-title { font-size: 18px }
+                body.is-mobile .col-modal-sub { font-size: 13px }
+                body.is-mobile .col-check-item { font-size: 13px }
+                body.is-mobile .col-modal-select-all { font-size: 12px }
+                body.is-mobile .btn-cancel { font-size: 13px }
+                body.is-mobile .table-header-title { font-size: 14px }
+                body.is-mobile .table-badge { font-size: 11px; padding: 4px 10px }
+                body.is-mobile .trend-chip { font-size: 11px; min-width: 64px }
+                body.is-mobile .sidebar .nav-group-label { font-size: 11px }
+                body.is-mobile .sidebar .nav-item { font-size: 13px; padding: 10px 12px; gap: 10px }
+                body.is-mobile .sidebar .nav-item.sub-item { font-size: 12px; padding: 8px 10px }
+                body.is-mobile .sidebar .nav-icon { width: 16px; height: 16px }
+                body.is-mobile .sidebar .sidebar-credit { font-size: 11px }
+                body.is-mobile .sidebar .sidebar-credit a { font-size: 12px }
             </style>
         </head>
 
