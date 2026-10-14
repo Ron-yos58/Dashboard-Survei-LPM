@@ -616,6 +616,19 @@
                     border-color: var(--na-border);
                 }
 
+                /* ── Sentiment pills & comment cell ─────────────────────── */
+                .sentiment-positive { background: var(--high-bg); color: var(--high-text); border-color: var(--high-border); }
+                .sentiment-negative { background: var(--low-bg); color: var(--low-text); border-color: var(--low-border); }
+                .sentiment-neutral  { background: var(--na-bg);   color: var(--na-text);   border-color: var(--na-border); }
+
+                .comment-cell {
+                    max-width: 460px;
+                    white-space: normal;
+                    word-break: break-word;
+                    line-height: 1.5;
+                    color: var(--text-secondary);
+                }
+
                 /* ── Table ───────────────────────────────────────────────── */
                 .table-card {
                     background: var(--bg-card);
@@ -2294,8 +2307,15 @@
                         <select class="filter-select" id="lu-role" onchange="applyLayananFilters()">
                             <option value="all">Semua Peran</option>
                         </select>
-                        <input class="search-box" type="text" id="lu-search" placeholder="Cari unit atau layanan..." oninput="applyLayananFilters()" />
+                        <input class="search-box" type="text" id="lu-search" placeholder="Cari unit, layanan, atau komentar..." oninput="applyLayananFilters()" />
                     </div>
+
+                    <div class="tab-bar">
+                        <button class="tab-btn active" onclick="switchLayananTab('quality')" id="tab-lu-quality">📊 Kualitas Layanan</button>
+                        <button class="tab-btn" onclick="switchLayananTab('sentiment')" id="tab-lu-sentiment">💬 Sentiment Analysis</button>
+                    </div>
+
+                    <div id="lu-quality-view">
 
                     <div class="stat-row four">
                         <div class="stat-card">
@@ -2378,6 +2398,89 @@
                             </thead>
                             <tbody id="lu-month-tbody"></tbody>
                         </table>
+                    </div>
+                    </div>
+
+                    <div id="lu-sentiment-view" style="display:none">
+                        <div class="legend-bar overview-score-legend">
+                            <span class="legend-note">
+                                <strong>Keterangan:</strong>
+                                Analisis mengikuti metodologi lexicon: teks dibersihkan, ditokenisasi, stopword dihapus, lalu skor dihitung dari kemunculan kata pada <strong>negatif_ta2.txt</strong> dan <strong>positif_ta2.txt</strong>. Skor 0 = Netral, di bawah 0 = Negatif, di atas 0 = Positif.
+                            </span>
+                        </div>
+
+                        <div class="summary-note" id="sa-ai-status" style="margin-bottom:1.25rem">
+                            <strong>Status analisis:</strong> memuat klasifikasi berbasis lexicon saat tab ini dibuka…
+                        </div>
+
+                        <div class="stat-row four">
+                            <div class="stat-card">
+                                <div class="stat-label">Total Komentar</div>
+                                <div class="stat-val" id="sa-total">-</div>
+                                <div class="stat-sub">komentar terfilter</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Sentimen Positif</div>
+                                <div class="stat-val" id="sa-positive" style="color:#0f5132">-</div>
+                                <div class="stat-sub" id="sa-positive-sub">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Sentimen Negatif</div>
+                                <div class="stat-val" id="sa-negative" style="color:#842029">-</div>
+                                <div class="stat-sub" id="sa-negative-sub">-</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">Sentimen Netral</div>
+                                <div class="stat-val" id="sa-neutral" style="color:#64748b">-</div>
+                                <div class="stat-sub" id="sa-neutral-sub">-</div>
+                            </div>
+                        </div>
+                        <div class="table-card">
+                            <div class="table-header">
+                                <span class="table-header-title">Distribusi Sentimen</span>
+                                <span class="table-badge" id="sa-dist-count">- sentimen</span>
+                            </div>
+                            <div class="insight-list" id="sa-dist-list"></div>
+                        </div>
+
+                        <div class="table-card">
+                            <div class="table-header">
+                                <span class="table-header-title">Sentimen per Unit</span>
+                                <span class="table-badge" id="sa-unit-count">- unit</span>
+                            </div>
+                            <table class="lu-quality-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Unit Layanan</th>
+                                        <th>Komentar</th>
+                                        <th>Positif</th>
+                                        <th>Negatif</th>
+                                        <th>Netral</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sa-unit-tbody"></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-card">
+                            <div class="table-header">
+                                <span class="table-header-title">Detail Komentar &amp; Klasifikasi Sentimen</span>
+                                <span class="table-badge" id="sa-detail-count">- komentar</span>
+                            </div>
+                            <table class="lu-quality-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Unit Layanan</th>
+                                        <th>Peran</th>
+                                        <th>Komentar</th>
+                                        <th>Sentimen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="sa-detail-tbody"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -2990,13 +3093,14 @@
                         if (unit !== 'all' && row.unit !== unit) return false;
                         if (role !== 'all' && row.role !== role) return false;
                         if (q) {
-                            var haystack = [row.unit, row.role, row.service, row.scoreLabel].join(' ').toLowerCase();
+                            var haystack = [row.unit, row.role, row.service, row.scoreLabel, row.feedback].join(' ').toLowerCase();
                             if (haystack.indexOf(q) === -1) return false;
                         }
                         return true;
                     });
 
                     renderLayananUnit();
+                    renderSentimentAnalysis();
                 }
 
                 function renderLayananUnit() {
@@ -3143,6 +3247,317 @@
                             + '</tr>';
                     });
                     document.getElementById('lu-month-tbody').innerHTML = html;
+                }
+
+                // Sentiment classification is performed by the backend lexicon files.
+                var sentimentCache = {};
+
+                function sentimentOf(text) {
+                    var clean = String(text || '').trim();
+                    if (!clean) {
+                        return { label: 'Netral', score: 0 };
+                    }
+                    
+                    // Cek cache dulu
+                    var cacheKey = clean;
+                    if (sentimentCache[cacheKey]) {
+                        return sentimentCache[cacheKey];
+                    }
+                    
+                    // Default response untuk sementara
+                    var defaultResponse = { label: 'Netral', score: 0, pending: true };
+                    sentimentCache[cacheKey] = defaultResponse;
+                    
+                    // Analisis dilakukan backend menggunakan tiga file lexicon.
+                    google.script.run
+                        .withSuccessHandler(function(results) {
+                            if (results && results.length > 0) {
+                                var result = results[0];
+                                sentimentCache[cacheKey] = { 
+                                    label: result.label || 'Netral', 
+                                    score: result.score || 0
+                                };
+                                
+                                // Refresh tampilan jika sedang melihat halaman sentiment
+                                if (document.getElementById('lu-sentiment-view').style.display !== 'none') {
+                                    renderLayananUnit();
+                                }
+                            }
+                        })
+                        .withFailureHandler(function(error) {
+                            console.warn('Sentiment analysis error:', error);
+                            delete sentimentCache[cacheKey];
+                        })
+                        .classifySentimentChunk([clean]);
+                    
+                    return defaultResponse;
+                }
+
+                function sentimentClass(label) {
+                    if (label === 'Positif') return 'sentiment-positive';
+                    if (label === 'Negatif') return 'sentiment-negative';
+                    return 'sentiment-neutral';
+                }
+
+                function sentimentColor(label) {
+                    if (label === 'Positif') return '#1a6b3a';
+                    if (label === 'Negatif') return '#c0392b';
+                    return '#64748b';
+                }
+
+                function getRowSentiment(row) {
+                    if (!row._sentiment) {
+                        // Jika belum dianalisis, minta klasifikasi berbasis lexicon ke backend.
+                        row._sentiment = sentimentOf(row.feedback);
+                    }
+                    return row._sentiment;
+                }
+                
+                // Fungsi untuk menganalisis batch feedback sekaligus
+                function analyzeSentimentBatch(feedbackTexts) {
+                    var texts = feedbackTexts.filter(function(text) {
+                        return text && String(text).trim().length > 0;
+                    });
+                    
+                    if (texts.length === 0) {
+                        return Promise.resolve([]);
+                    }
+                    
+                    return new Promise(function(resolve, reject) {
+                        google.script.run
+                            .withSuccessHandler(function(results) {
+                                resolve(results);
+                            })
+                            .withFailureHandler(function(error) {
+                                console.warn('Batch sentiment analysis error:', error);
+                                reject(error);
+                            })
+                            .classifySentimentChunk(texts);
+                    });
+                }
+
+                function sentimentRows(rows) {
+                    return rows.filter(function (r) {
+                        return r.feedback && String(r.feedback).trim().length > 0;
+                    });
+                }
+
+                function switchLayananTab(tab) {
+                    var qualityView = document.getElementById('lu-quality-view');
+                    var sentimentView = document.getElementById('lu-sentiment-view');
+                    var qualityBtn = document.getElementById('tab-lu-quality');
+                    var sentimentBtn = document.getElementById('tab-lu-sentiment');
+                    if (tab === 'sentiment') {
+                        qualityView.style.display = 'none';
+                        sentimentView.style.display = '';
+                        qualityBtn.classList.remove('active');
+                        sentimentBtn.classList.add('active');
+                        renderSentimentAnalysis();
+                    } else {
+                        qualityView.style.display = '';
+                        sentimentView.style.display = 'none';
+                        qualityBtn.classList.add('active');
+                        sentimentBtn.classList.remove('active');
+                    }
+                }
+
+                function renderSentimentAnalysis() {
+                    var rows = sentimentRows(filteredLU);
+                    var total = rows.length;
+                    
+                    // Reset semua sentiment cache untuk rows yang ada
+                    rows.forEach(function(row) {
+                        if (row.feedback && String(row.feedback).trim().length > 0) {
+                            delete row._sentiment;
+                        }
+                    });
+                    
+                    // Tampilkan loading state
+                    document.getElementById('sa-total').textContent = '...';
+                    document.getElementById('sa-positive').textContent = '...';
+                    document.getElementById('sa-negative').textContent = '...';
+                    document.getElementById('sa-neutral').textContent = '...';
+                    document.getElementById('sa-positive-sub').textContent = 'analisis sedang berjalan';
+                    document.getElementById('sa-negative-sub').textContent = 'analisis sedang berjalan';
+                    document.getElementById('sa-neutral-sub').textContent = 'analisis sedang berjalan';
+                    
+                    var loadingHTML = '<div class="insight-sub">Menganalisis sentimen berbasis lexicon...</div>';
+                    document.getElementById('sa-dist-list').innerHTML = loadingHTML;
+                    renderEmpty('sa-unit-tbody', 6, 'Menganalisis sentimen...');
+                    renderEmpty('sa-detail-tbody', 5, 'Menganalisis sentimen...');
+                    
+                    // Kumpulkan semua feedback untuk batch analysis
+                    var feedbackTexts = rows.map(function(row) {
+                        return String(row.feedback || '').trim();
+                    }).filter(function(text) {
+                        return text.length > 0;
+                    });
+                    
+                    if (feedbackTexts.length === 0) {
+                        // Tidak ada feedback untuk dianalisis
+                        var counts = { Positif: 0, Negatif: 0, Netral: 0 };
+                        updateSentimentDisplay(rows, counts, total);
+                        return;
+                    }
+                    
+                    // Analisis batch menggunakan tiga file lexicon di backend.
+                    analyzeSentimentBatch(feedbackTexts)
+                        .then(function(results) {
+                            // Map results back to rows
+                            var resultMap = {};
+                            results.forEach(function(result, index) {
+                                if (result && result.feedback) {
+                                    resultMap[result.feedback] = result;
+                                }
+                            });
+                            
+                            // Update sentiment cache untuk setiap row
+                            rows.forEach(function(row) {
+                                var text = String(row.feedback || '').trim();
+                                if (text && resultMap[text]) {
+                                    var result = resultMap[text];
+                                    row._sentiment = { 
+                                        label: result.label || 'Netral', 
+                                        score: result.score || 0
+                                    };
+                                }
+                            });
+                            
+                            // Hitung counts
+                            var counts = { Positif: 0, Negatif: 0, Netral: 0 };
+                            rows.forEach(function (r) { 
+                                if (r._sentiment) {
+                                    counts[r._sentiment.label]++; 
+                                }
+                            });
+                            
+                            updateSentimentDisplay(rows, counts, total);
+                        })
+                        .catch(function(error) {
+                            console.warn('Batch sentiment analysis failed:', error);
+                            document.getElementById('sa-ai-status').innerHTML =
+                                '<strong>Status analisis:</strong> gagal menganalisis komentar. Silakan muat ulang tab atau coba lagi.';
+                            document.getElementById('sa-total').textContent = total;
+                            ['sa-positive', 'sa-negative', 'sa-neutral'].forEach(function(id) {
+                                document.getElementById(id).textContent = '-';
+                                document.getElementById(id + '-sub').textContent = 'analisis gagal';
+                            });
+                            document.getElementById('sa-dist-list').innerHTML =
+                                '<div class="insight-sub">Hasil sentimen tidak tersedia.</div>';
+                            renderEmpty('sa-unit-tbody', 6, 'Analisis gagal; hasil belum tersedia.');
+                            renderEmpty('sa-detail-tbody', 5, 'Analisis gagal; hasil belum tersedia.');
+                        });
+                }
+                
+                function updateSentimentDisplay(rows, counts, total) {
+                    document.getElementById('sa-ai-status').innerHTML =
+                        '<strong>Status analisis:</strong> klasifikasi berbasis lexicon selesai.';
+                    document.getElementById('sa-total').textContent = total;
+                    setSentimentKpi('sa-positive', counts.Positif, total);
+                    setSentimentKpi('sa-negative', counts.Negatif, total);
+                    setSentimentKpi('sa-neutral', counts.Netral, total);
+                    renderSentimentDistribution(counts, total);
+                    renderSentimentPerUnit(rows);
+                    renderSentimentDetail(rows);
+                }
+
+                function setSentimentKpi(id, count, total) {
+                    document.getElementById(id).textContent = count;
+                    document.getElementById(id + '-sub').textContent = total
+                        ? Math.round(count / total * 100) + '% dari komentar'
+                        : '-';
+                }
+
+                function renderSentimentDistribution(counts, total) {
+                    document.getElementById('sa-dist-count').textContent = total + ' komentar';
+                    var list = document.getElementById('sa-dist-list');
+                    if (!total) {
+                        list.innerHTML = '<div class="insight-sub">Tidak ada komentar untuk filter ini.</div>';
+                        return;
+                    }
+                    var order = ['Positif', 'Negatif', 'Netral'];
+                    var html = '';
+                    order.forEach(function (label) {
+                        var count = counts[label] || 0;
+                        var pct = total ? count / total : 0;
+                        html += '<div class="insight-row">'
+                            + '<div class="insight-main">'
+                            + '<div class="insight-title">' + label + '</div>'
+                            + '<div class="insight-sub">' + count + ' komentar</div>'
+                            + '<div class="meter"><div class="meter-fill" style="width:' + (pct * 100) + '%;background:' + sentimentColor(label) + '"></div></div>'
+                            + '</div>'
+                            + '<span class="score-pill ' + sentimentClass(label) + '">' + (pct * 100).toFixed(1) + '%</span>'
+                            + '</div>';
+                    });
+                    list.innerHTML = html;
+                }
+
+                function renderSentimentPerUnit(rows) {
+                    var groups = groupRows(rows, function (r) { return r.unit || '-'; });
+                    var items = Object.keys(groups).map(function (unit) {
+                        var group = groups[unit];
+                        var counts = { Positif: 0, Negatif: 0, Netral: 0 };
+                        group.forEach(function (r) { counts[getRowSentiment(r).label]++; });
+                        return {
+                            unit: unit,
+                            count: group.length,
+                            counts: counts,
+                            positiveRate: group.length ? counts.Positif / group.length : null
+                        };
+                    }).sort(function (a, b) {
+                        return b.count - a.count || (b.positiveRate || 0) - (a.positiveRate || 0);
+                    });
+
+                    document.getElementById('sa-unit-count').textContent = items.length + ' unit';
+                    if (!items.length) {
+                        renderEmpty('sa-unit-tbody', 6, 'Tidak ada komentar untuk filter ini.');
+                        return;
+                    }
+
+                    var html = '';
+                    items.forEach(function (item, i) {
+                        html += '<tr>'
+                            + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                            + '<td style="font-weight:600">' + esc(item.unit) + '</td>'
+                            + '<td>' + item.count + '</td>'
+                            + sentimentCountPill(item.counts.Positif, item.count, 'Positif')
+                            + sentimentCountPill(item.counts.Negatif, item.count, 'Negatif')
+                            + sentimentCountPill(item.counts.Netral, item.count, 'Netral')
+                            + '</tr>';
+                    });
+                    document.getElementById('sa-unit-tbody').innerHTML = html;
+                }
+
+                function sentimentCountPill(count, total, label) {
+                    var pct = total ? Math.round(count / total * 100) : 0;
+                    return '<td><span class="score-pill ' + sentimentClass(label) + '">' + count + ' (' + pct + '%)</span></td>';
+                }
+
+                function renderSentimentDetail(rows) {
+                    var priority = { Negatif: 0, Netral: 1, Positif: 2 };
+                    var items = rows.slice().sort(function (a, b) {
+                        var sa = getRowSentiment(a).label;
+                        var sb = getRowSentiment(b).label;
+                        return (priority[sa] - priority[sb]) || String(a.unit).localeCompare(String(b.unit));
+                    });
+                    document.getElementById('sa-detail-count').textContent = items.length + ' komentar';
+                    if (!items.length) {
+                        renderEmpty('sa-detail-tbody', 5, 'Tidak ada komentar untuk filter ini.');
+                        return;
+                    }
+
+                    var html = '';
+                    items.forEach(function (r, i) {
+                        var s = getRowSentiment(r);
+                        html += '<tr>'
+                            + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                            + '<td style="font-weight:600">' + esc(r.unit) + '</td>'
+                            + '<td>' + esc(r.role) + '</td>'
+                            + '<td class="comment-cell">' + esc(r.feedback) + '</td>'
+                            + '<td><span class="score-pill ' + sentimentClass(s.label) + '">' + s.label + '</span></td>'
+                            + '</tr>';
+                    });
+                    document.getElementById('sa-detail-tbody').innerHTML = html;
                 }
 
                 function initStudentSatisfaction(payload) {

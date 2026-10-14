@@ -38,6 +38,7 @@ Aplikasi ini adalah dashboard berbasis Google Apps Script untuk memantau perform
 - Distribusi peran dan distribusi nilai (Sangat Buruk sampai Sangat Baik).
 - Tabel peringkat kualitas layanan per unit.
 - Tabel jumlah responden per bulan.
+- Tab Sentiment Analysis: menganalisis sentimen komentar (feedback) berbahasa Indonesia menggunakan tiga file lexicon: `combined_stop_words.txt`, `negatif_ta2.txt`, dan `positif_ta2.txt`. Ketiga file harus tersedia di Google Drive akun yang menjalankan web app. Teks dinormalisasi dan ditokenisasi, stopword dihapus, lalu skor dihitung dengan menambahkan 1 untuk setiap token positif dan mengurangi 1 untuk setiap token negatif. Skor 0 diklasifikasikan Netral, skor di bawah 0 Negatif, dan skor di atas 0 Positif. Cache klasifikasi otomatis menggunakan identitas dan waktu perubahan terakhir setiap file, sehingga perubahan kamus membuat komentar dihitung ulang tanpa mengganti versi cache secara manual. Hasil ditampilkan dalam KPI, distribusi sentimen, sentimen per unit, dan daftar detail klasifikasi komentar.
 
 6. Student Satisfaction
 - Filter berdasarkan tahun survei, tahun masuk, program studi, dan kategori.

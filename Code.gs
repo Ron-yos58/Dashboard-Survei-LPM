@@ -614,6 +614,167 @@ function getStudentSatisfactionData() {
   };
 }
 
+// ------------------------------------------------------------
+// Sentiment Analysis berbasis tiga file lexicon di Google Drive.
+// ------------------------------------------------------------
+var SENTIMENT_FOLDER_ID = "1dTIRYHT2LFqdXVZ0S2ZfOpTYHZHXTusg";
+var SENTIMENT_STOPWORDS_FILE = "combined_stop_words.txt";
+var SENTIMENT_NEGATIVE_FILE = "negatif_ta2.txt";
+var SENTIMENT_POSITIVE_FILE = "positif_ta2.txt";
+var SENTIMENT_CACHE_SHEET = "SentimentCache";
+
+function hashText_(text, lexiconVersion) {
+  var s = String(text || "");
+  var hash = 0;
+  for (var i = 0; i < s.length; i++) {
+    hash = ((hash << 5) - hash) + s.charCodeAt(i);
+    hash |= 0;
+  }
+  return lexiconVersion + "_s" + hash + "_" + s.length;
+}
+
+function readSentimentFile_(filename) {
+  var files = DriveApp.getFolderById(SENTIMENT_FOLDER_ID).getFilesByName(filename);
+  if (!files.hasNext()) {
+    throw new Error("File lexicon tidak ditemukan di folder Drive sentimen: " + filename);
+  }
+  var file = files.next();
+  var version = file.getId() + "_" + file.getLastUpdated().getTime();
+  var cacheKey = "sentiment-file-" + filename.replace(/[^a-z0-9]/gi, "_") + "-" + version;
+  var cache = CacheService.getScriptCache();
+  var content = cache.get(cacheKey);
+  if (content === null) {
+    content = file.getBlob().getDataAsString("UTF-8");
+    cache.put(cacheKey, content, 21600);
+  }
+  return { content: content, version: version };
+}
+
+function parseSentimentLexicon_(content) {
+  var words = {};
+  String(content || "").split(/\r?\n/).forEach(function(line) {
+    var word = line.trim().toLowerCase();
+    if (word && word.charAt(0) !== "#") words[word] = true;
+  });
+  return words;
+}
+
+function getSentimentLexicons_() {
+  var stopwords = readSentimentFile_(SENTIMENT_STOPWORDS_FILE);
+  var negative = readSentimentFile_(SENTIMENT_NEGATIVE_FILE);
+  var positive = readSentimentFile_(SENTIMENT_POSITIVE_FILE);
+  return {
+    stopwords: parseSentimentLexicon_(stopwords.content),
+    negative: parseSentimentLexicon_(negative.content),
+    positive: parseSentimentLexicon_(positive.content),
+    version: [stopwords.version, negative.version, positive.version].join("_")
+  };
+}
+
+function normalizeSentimentText_(text) {
+  var normalized = String(text || "").toLowerCase();
+  normalized = normalized.replace(/https?:\/\/\S+|www\.\S+/g, " ");
+  normalized = normalized.replace(/<[^>]*>/g, " ");
+  normalized = normalized.replace(/[@#]\S+/g, " ");
+  if (normalized.normalize) {
+    normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  }
+  normalized = normalized.replace(/\w*\d\w*/g, " ");
+  return normalized.replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function classifySentiment_(text, lexicons) {
+  lexicons = lexicons || getSentimentLexicons_();
+  var tokens = normalizeSentimentText_(text).match(/\w+/g) || [];
+  tokens = tokens.filter(function(token) {
+    return !lexicons.stopwords[token];
+  });
+  var score = 0;
+
+  tokens.forEach(function(token) {
+    if (lexicons.positive[token]) {
+      score++;
+    } else if (lexicons.negative[token]) {
+      score--;
+    }
+  });
+
+  return {
+    label: score > 0 ? "Positif" : (score < 0 ? "Negatif" : "Netral"),
+    score: score
+  };
+}
+
+function getSentimentCacheSheet_() {
+  var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(SENTIMENT_CACHE_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(SENTIMENT_CACHE_SHEET);
+    sheet.appendRow(["hash", "feedback", "label", "score"]);
+  } else {
+    sheet.getRange(1, 1, 1, 4).setValues([["hash", "feedback", "label", "score"]]);
+  }
+  return sheet;
+}
+
+function readSentimentCache_() {
+  var sheet = getSentimentCacheSheet_();
+  var lastRow = sheet.getLastRow();
+  var map = {};
+  if (lastRow < 2) return map;
+  var data = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+  data.forEach(function (row) {
+    if (row[0]) map[String(row[0])] = { label: String(row[2] || ""), score: Number(row[3] || 0) };
+  });
+  return map;
+}
+
+
+
+// Dipanggil dari client: klasifikasikan sekumpulan teks feedback (maks. ~30 per panggilan).
+function classifySentimentChunk(texts) {
+  var lexicons = getSentimentLexicons_();
+  var cache = CacheService.getScriptCache();
+  var sheetCache = readSentimentCache_();
+  var sheet = getSentimentCacheSheet_();
+  var results = [];
+  var newRows = [];
+
+  (texts || []).forEach(function (text) {
+    var clean = String(text || "").trim();
+    var result = { feedback: clean, label: null, score: 0 };
+
+    if (clean) {
+      var key = hashText_(clean, lexicons.version);
+      var cached = sheetCache[key] || null;
+
+      if (!cached) {
+        var mem = cache.get(key);
+        if (mem) {
+          var parts = mem.split("|");
+          cached = { label: parts[0], score: parseFloat(parts[1]) || 0 };
+        }
+      }
+
+      if (!cached) {
+        var cls = classifySentiment_(clean, lexicons);
+        cached = { label: cls.label, score: cls.score };
+        newRows.push([key, clean, cls.label, cls.score]);
+        cache.put(key, cls.label + "|" + cls.score, 21600);
+      }
+
+      result.label = cached.label;
+      result.score = cached.score;
+    }
+    results.push(result);
+  });
+
+  if (newRows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, 4).setValues(newRows);
+  }
+  return results;
+}
+
 function getAllData() {
   return {
     akademik:  getSheetData_(SHEET_AKADEMIK),
