@@ -2485,6 +2485,7 @@
                                         <th>Peran</th>
                                         <th>Komentar</th>
                                         <th>Sentimen</th>
+                                        <th>Skor</th>
                                     </tr>
                                 </thead>
                                 <tbody id="sa-detail-tbody"></tbody>
@@ -3393,7 +3394,7 @@
                     var loadingHTML = '<div class="insight-sub">Menganalisis sentimen berbasis lexicon...</div>';
                     document.getElementById('sa-dist-list').innerHTML = loadingHTML;
                     renderEmpty('sa-unit-tbody', 6, 'Menganalisis sentimen...');
-                    renderEmpty('sa-detail-tbody', 5, 'Menganalisis sentimen...');
+                    renderEmpty('sa-detail-tbody', 6, 'Menganalisis sentimen...');
                     
                     // Kumpulkan semua feedback untuk batch analysis
                     var feedbackTexts = rows.map(function(row) {
@@ -3454,7 +3455,7 @@
                             document.getElementById('sa-dist-list').innerHTML =
                                 '<div class="insight-sub">Hasil sentimen tidak tersedia.</div>';
                             renderEmpty('sa-unit-tbody', 6, 'Analisis gagal; hasil belum tersedia.');
-                            renderEmpty('sa-detail-tbody', 5, 'Analisis gagal; hasil belum tersedia.');
+                            renderEmpty('sa-detail-tbody', 6, 'Analisis gagal; hasil belum tersedia.');
                         });
                 }
                 
@@ -3555,7 +3556,7 @@
                     });
                     document.getElementById('sa-detail-count').textContent = items.length + ' komentar';
                     if (!items.length) {
-                        renderEmpty('sa-detail-tbody', 5, 'Tidak ada komentar untuk filter ini.');
+                        renderEmpty('sa-detail-tbody', 6, 'Tidak ada komentar untuk filter ini.');
                         return;
                     }
 
@@ -3568,6 +3569,7 @@
                             + '<td>' + esc(r.role) + '</td>'
                             + '<td class="comment-cell">' + esc(r.feedback) + '</td>'
                             + '<td><span class="score-pill ' + sentimentClass(s.label) + '">' + s.label + '</span></td>'
+                            + '<td>' + s.score + '</td>'
                             + '</tr>';
                     });
                     document.getElementById('sa-detail-tbody').innerHTML = html;

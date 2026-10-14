@@ -1,0 +1,54 @@
+1. Persiapan & Prapemrosesan Data
+a. Memuat dataset ke dalam Orange3 dan memastikan bahwa hanya respons dengan status "completed" yang disertakan dalam analisis, total data adalah 80 respons.
+b. Melakukan prapemrosesan teks dengan menerapkan beberapa filter berikut:
+i. Penghapusan Stopword: Menghapus kata-kata umum yang tidak memberikan nilai analisis signifikan, baik dari daftar stopword standar maupun daftar khusus. Proses ini menggunakan daftar stopword dari GitHub (https://github.com/louisowen6/NLP_bahasa_resources/blob/master/combined_stop_words.txt) serta tambahan kata-kata berikut untuk meningkatkan akurasi analisis:
+
+yg, dgn, dll, terkait, dengan, dan, yang, ke, di, pada, saya, kita, nya, ny, anda, mereka, ini, itu, n, b, u, ba, x, segi, mohon, cob, bsik, jam, semester, tanggal, minggu, frekuensi, nol, byk, pas, program, sistem, data, informasi, orang, kegiatan, unit, proses, berkas, fadhil, sindu, ibu, bu, nia, agnes, henky, mbak, mas, pk, dkk, oke, gk.
+
+ii. Penghapusan Angka (Number Removal): Menghilangkan semua angka dalam teks untuk menghindari pengaruh data numerik yang tidak relevan terhadap analisis sentimen.
+iii. Penyaringan dengan Regular Expression (RegExp): Membersihkan karakter khusus serta elemen teks yang tidak relevan untuk meningkatkan akurasi analisis.
+
+2. Transformasi Teks
+a. Mengonversi seluruh teks ke huruf kecil untuk standarisasi.
+b. Menghapus aksen (diacritics) guna menyamakan karakter yang berbeda namun memiliki makna serupa.
+c. Memproses elemen HTML dalam teks guna menghilangkan tag atau elemen yang tertanam.
+d. Menghapus URL dari respons untuk mengurangi gangguan (noise) dalam analisis.
+
+3. Tokenisasi
+Menggunakan pola Regular Expression (\w+) untuk membagi teks menjadi unit kata secara efektif, memastikan pemrosesan kata-kata secara lebih akurat.
+
+4.  Analisis Sentimen Menggunakan Kamus Kustom
+a. Menggunakan kamus sentimen khusus yang diperoleh dari GitHub untuk meningkatkan akurasi klasifikasi.
+i. Daftar kata negative (https://github.com/ramaprakoso/analisis-sentimen/blob/master/kamus/negatif_ta2.txt)
+ii. Daftar kata positif (https://github.com/ramaprakoso/analisis-sentimen/blob/master/kamus/positif_ta2.txt) 
+
+5. Skor Sentimen & Klasifikasi
+a. Menghitung skor sentimen berdasarkan kemunculan kata positif dan negatif dalam teks.
+b. Menentukan klasifikasi sentimen berdasarkan ambang batas yang telah ditetapkan:
+i. Jika hasil perhitungan = 0 ? dikategorikan sebagai Netral.
+ii. Jika hasil perhitungan < 0 ? dikategorikan sebagai Negatif.
+iii. Jika hasil perhitungan > 0 ? dikategorikan sebagai Positif.
+
+6. Visualisasi & Pelaporan
+a. Menggunakan word cloud untuk menampilkan kata-kata sentimen yang paling sering muncul.
+b. Membuat diagram batang untuk menunjukkan distribusi sentimen dalam dataset.
+c. Menampilkan beberapa contoh respons yang telah diklasifikasikan guna memvalidasi hasil analisis.
+
+
+
+
+Gambar 1. Sentimen Analisis Widget Data
+
+
+	Gambar 2. Word Cloud Sebelum Prapemrosesan Data
+
+
+Gambar 3. Word Cloud Setelah Prapemrosesan Data
+
+
+Gambar 4. Diagram Batang Berdasarkan Distribusi Sentiment dan Penilaian Akhir
+
+Tabel 1. Contoh respons yang telah diklasifikasi
+Response IDSecara keseluruhan, berikan penilaian Anda terhadap layanan tersebut.Sebutkan masukan-masukan yang Anda miliki untuk perbaikan layanan {{ Q1 }}!ScoreLabel118672657162BurukTingkatkan etika dosen dalam mengajar. Kurangi sikap arogan, karena dosen fakultas ekonomi memiliki kinerja yang kurang namun merasa sehebat dosen fakultas hukum unpar-5.55556Negatif118669226925CukupAda baiknya diberikan feedback apakah pengajuan aset/barang disetujui atau tidak sehingga kami dapat memberikan laporan kepada pengguna. Selama ini, kami sampai menggunakan dana penelitian kami untuk mengisi beberapa barang keperluan yang tidak ada kabarnya sehingga kualitas barang rendah karena harganya yang murah. Barang yang diajukan diperuntukkan ke pengguna (dosen dan mahasiswa) untuk mendukung kegiatan penelitan. Namun begitu, beberapa barang lain ada yang diproses oleh Direktorat tersebut.12.5Positif118748181486Cukup- Layanan menyesuaikan dengan semangat transformasi 
+- Kontak dengan auditor AMI sebaiknya dilakukan oleh LPM 
+- Jadwal AMI sebaiknya dikoordinasikan internal dengan baik sehingga tidak bertabrakan dengan acara yang dilakukan oleh LPM sendiri.7.14286Positif1.19E+11BurukJangan anggap remeh mahasiswa. Kami memang lebih muda, tapi bukan berarti lebih bodoh atau dungu. Tanamkan semangat egaliter, beri kami layanan yang optimal dan jangan persulit alur permasalahan. TU sebagian adalah orang baik, tapi sebagian merasa diri paling berkuasa. Berhenti berpikir ala orde ba(b)u!-4.7619Negatif118674362257BurukPemudahan research dengan filter mendalam, dan menambahkan buku di perpustakaan0Netral
