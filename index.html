@@ -2405,7 +2405,8 @@
                         <div class="legend-bar overview-score-legend">
                             <span class="legend-note">
                                 <strong>Keterangan:</strong>
-                                Analisis mengikuti metodologi lexicon: teks dibersihkan, ditokenisasi, stopword dihapus, lalu skor dihitung dari kemunculan kata pada <strong>negatif_ta2.txt</strong> dan <strong>positif_ta2.txt</strong>. Skor 0 = Netral, di bawah 0 = Negatif, di atas 0 = Positif.
+                                Analisis mengikuti metodologi lexicon: teks dibersihkan dan ditokenisasi, lalu stopword dihapus menggunakan <strong>combined_stop_words.txt</strong>. Skor dihitung dari kemunculan kata pada <strong>negatif_ta2.txt</strong> dan <strong>positif_ta2.txt</strong>: skor 0 = Netral, di bawah 0 = Negatif, dan di atas 0 = Positif.
+                                <br><strong>Disclaimer:</strong> Hasil analisis otomatis berbasis kamus dan tidak 100% akurat; konteks kalimat atau penggunaan kata yang tidak tercakup kamus dapat memengaruhi hasil. Gunakan hasil sebagai indikasi, bukan penilaian pasti.
                             </span>
                         </div>
 
@@ -2466,7 +2467,15 @@
                         <div class="table-card">
                             <div class="table-header">
                                 <span class="table-header-title">Detail Komentar &amp; Klasifikasi Sentimen</span>
-                                <span class="table-badge" id="sa-detail-count">- komentar</span>
+                                <div style="display:flex;align-items:center;gap:.5rem">
+                                    <select class="filter-select" id="sa-sentiment-filter" onchange="renderSentimentDetail(sentimentRows(filteredLU))" aria-label="Filter komentar berdasarkan sentimen">
+                                        <option value="all">Semua Sentimen</option>
+                                        <option value="Negatif">Negatif</option>
+                                        <option value="Netral">Netral</option>
+                                        <option value="Positif">Positif</option>
+                                    </select>
+                                    <span class="table-badge" id="sa-detail-count">- komentar</span>
+                                </div>
                             </div>
                             <table class="lu-quality-table">
                                 <thead>
@@ -3534,6 +3543,10 @@
                 }
 
                 function renderSentimentDetail(rows) {
+                    var selectedSentiment = document.getElementById('sa-sentiment-filter').value;
+                    rows = rows.filter(function(row) {
+                        return selectedSentiment === 'all' || getRowSentiment(row).label === selectedSentiment;
+                    });
                     var priority = { Negatif: 0, Netral: 1, Positif: 2 };
                     var items = rows.slice().sort(function (a, b) {
                         var sa = getRowSentiment(a).label;
