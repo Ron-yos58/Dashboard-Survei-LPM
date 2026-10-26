@@ -1,8 +1,6 @@
 // ============================================================
 //  Dasbor Survei LPM — Google Apps Script
 //  File: Code.gs
-//  Cara deploy: Extensions > Apps Script > Deploy > New deployment
-//               Type: Web app | Execute as: Me | Access: Anyone
 // ============================================================
 
 var SPREADSHEET_ID = "1HaOmVKEezAsnNs2v5-j1JV4afI2EDQklrO5DFo27QnA";
@@ -57,7 +55,6 @@ function getSheetData_(sheetName) {
 
   if (lastRow < 2) return [];
 
-  // Baris 1 = header, baris 2 dst = data
   var headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   var dataRows = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
 
@@ -67,8 +64,6 @@ function getSheetData_(sheetName) {
     if (!name) return;
 
     var obj = { name: name };
-    // Petakan kolom ke key standar berdasarkan posisi
-    // Kolom: 0=Nama, 1=MKS, 2=US, 3=TS, 4=SS, 5=KP, 6=Final Score
     var keys = ["name","mks","us","ts","ss","kp","final"];
     for (var i = 1; i < keys.length; i++) {
       var raw = row[i];
@@ -79,7 +74,6 @@ function getSheetData_(sheetName) {
     result.push(obj);
   });
 
-  // Sort descending by final score (null values go to bottom)
   result.sort(function(a, b) {
     var af = (a.final === null || a.final === undefined) ? -1 : a.final;
     var bf = (b.final === null || b.final === undefined) ? -1 : b.final;
@@ -88,32 +82,20 @@ function getSheetData_(sheetName) {
   return result;
 }
 
-// ------------------------------------------------------------
-// Fungsi yang dipanggil dari client-side JS
-// ------------------------------------------------------------
-function getAkademikData() {
-  return getSheetData_(SHEET_AKADEMIK);
-}
-
-function getPenunjangData() {
-  return getSheetData_(SHEET_PENUNJANG);
-}
+function getAkademikData() { return getSheetData_(SHEET_AKADEMIK); }
+function getPenunjangData() { return getSheetData_(SHEET_PENUNJANG); }
 
 function getYearFromTimestamp_(value) {
   if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
     return value.getFullYear();
   }
-
   var text = String(value || "").trim();
   var match = text.match(/\b(20\d{2}|19\d{2})\b/);
   return match ? parseInt(match[1], 10) : null;
 }
 
 function getMonthInfoFromTimestamp_(value) {
-  var monthNames = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-  ];
+  var monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
   var year = null;
   var month = null;
 
@@ -162,14 +144,7 @@ function getSurveySummaryData() {
     var unreadable = 0;
 
     if (!sheet) {
-      return {
-        name: config.name,
-        timestampColumn: columnToLetter_(config.timestampCol),
-        total: 0,
-        countsByYear: countsByYear,
-        unreadable: 0,
-        missing: true
-      };
+      return { name: config.name, timestampColumn: columnToLetter_(config.timestampCol), total: 0, countsByYear: countsByYear, unreadable: 0, missing: true };
     }
 
     var lastRow = sheet.getLastRow();
@@ -178,7 +153,6 @@ function getSurveySummaryData() {
       timestamps.forEach(function(row) {
         var timestamp = row[0];
         if (timestamp === "" || timestamp === null || timestamp === undefined) return;
-
         total++;
         var year = getYearFromTimestamp_(timestamp);
         if (year) {
@@ -190,67 +164,40 @@ function getSurveySummaryData() {
       });
     }
 
-    return {
-      name: config.name,
-      timestampColumn: columnToLetter_(config.timestampCol),
-      total: total,
-      countsByYear: countsByYear,
-      unreadable: unreadable,
-      missing: false
-    };
+    return { name: config.name, timestampColumn: columnToLetter_(config.timestampCol), total: total, countsByYear: countsByYear, unreadable: unreadable, missing: false };
   });
 
   return {
     sheets: sheets,
-    years: Object.keys(yearsMap).map(function(year) {
-      return parseInt(year, 10);
-    }).sort(function(a, b) {
-      return b - a;
-    })
+    years: Object.keys(yearsMap).map(function(year) { return parseInt(year, 10); }).sort(function(a, b) { return b - a; })
   };
 }
 
 function parseLikertScore_(value) {
   if (value === null || value === undefined || value === "") return null;
-
-  if (typeof value === "number") {
-    return Math.max(0, Math.min(1, value));
-  }
-
+  if (typeof value === "number") return Math.max(0, Math.min(1, value));
   var text = String(value).trim().toLowerCase();
   var numeric = parseFloat(text.replace(",", "."));
-  if (!isNaN(numeric) && text.match(/^[0-9]+([,.][0-9]+)?$/)) {
-    return Math.max(0, Math.min(1, numeric));
-  }
-
+  if (!isNaN(numeric) && text.match(/^[0-9]+([,.][0-9]+)?$/)) return Math.max(0, Math.min(1, numeric));
   if (text.indexOf("sangat buruk") !== -1) return 0;
   if (text.indexOf("buruk") !== -1) return 0.25;
   if (text.indexOf("cukup") !== -1) return 0.5;
   if (text.indexOf("sangat baik") !== -1) return 1;
   if (text.indexOf("baik") !== -1) return 0.75;
-
   return null;
 }
 
 function parseAgreementScore_(value) {
   if (value === null || value === undefined || value === "") return null;
-
-  if (typeof value === "number") {
-    return Math.max(0, Math.min(1, value));
-  }
-
+  if (typeof value === "number") return Math.max(0, Math.min(1, value));
   var text = String(value).trim().toLowerCase();
   var numeric = parseFloat(text.replace(",", "."));
-  if (!isNaN(numeric) && text.match(/^[0-9]+([,.][0-9]+)?$/)) {
-    return Math.max(0, Math.min(1, numeric));
-  }
-
+  if (!isNaN(numeric) && text.match(/^[0-9]+([,.][0-9]+)?$/)) return Math.max(0, Math.min(1, numeric));
   if (text.indexOf("sangat tidak setuju") !== -1) return 0;
   if (text.indexOf("tidak setuju") !== -1) return 0.25;
   if (text.indexOf("netral") !== -1) return 0.5;
   if (text.indexOf("sangat setuju") !== -1) return 1;
   if (text.indexOf("setuju") !== -1) return 0.75;
-
   return null;
 }
 
@@ -260,7 +207,6 @@ function parseIndexScore_(value) {
     if (value > 1 && value <= 100) return value / 100;
     return Math.max(0, Math.min(1, value));
   }
-
   var text = String(value).trim().replace("%", "");
   var numeric = parseFloat(text.replace(",", "."));
   if (isNaN(numeric)) return parseAgreementScore_(value);
@@ -270,18 +216,13 @@ function parseIndexScore_(value) {
 
 function parseFivePointScore_(value) {
   if (value === null || value === undefined || value === "") return null;
-
-  var numeric = typeof value === "number"
-    ? value
-    : parseFloat(String(value).trim().replace(",", "."));
-
+  var numeric = typeof value === "number" ? value : parseFloat(String(value).trim().replace(",", "."));
   if (isNaN(numeric)) return null;
   return Math.max(1, Math.min(5, numeric));
 }
 
 function formatSurveyDate_(value) {
   var date = null;
-
   if (Object.prototype.toString.call(value) === "[object Date]" && !isNaN(value.getTime())) {
     date = value;
   } else if (typeof value === "number" && value > 20000) {
@@ -290,9 +231,7 @@ function formatSurveyDate_(value) {
     var parsed = new Date(value);
     if (!isNaN(parsed.getTime())) date = parsed;
   }
-
   if (!date) return { year: null, label: "(Tanggal tidak terbaca)" };
-
   var timezone = Session.getScriptTimeZone() || "Asia/Jakarta";
   return {
     year: parseInt(Utilities.formatDate(date, timezone, "yyyy"), 10),
@@ -303,24 +242,14 @@ function formatSurveyDate_(value) {
 function getGuestLectureData() {
   var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
   var sheet = ss.getSheetByName(SHEET_GUEST_LECTURE);
-
-  if (!sheet) {
-    throw new Error("Sheet '" + SHEET_GUEST_LECTURE + "' tidak ditemukan.");
-  }
+  if (!sheet) throw new Error("Sheet '" + SHEET_GUEST_LECTURE + "' tidak ditemukan.");
 
   var lastRow = sheet.getLastRow();
   var lastCol = sheet.getLastColumn();
-  if (lastRow < 2) {
-    return { rows: [], years: [], summary: { total: 0, avg: null, positiveRate: null, metrics: [], distributions: [], events: [], faculties: [], speakers: [], feedback: [] } };
-  }
+  if (lastRow < 2) return { rows: [], years: [], summary: { total: 0, avg: null, positiveRate: null, metrics: [], distributions: [], events: [], faculties: [], speakers: [], feedback: [] } };
 
   var dataRows = sheet.getRange(2, 1, lastRow - 1, Math.max(lastCol, 13)).getValues();
-  var metricNames = [
-    "Organisasi kegiatan",
-    "Fasilitas atau platform",
-    "Relevansi penerapan ilmu",
-    "Peningkatan pemahaman isu"
-  ];
+  var metricNames = ["Organisasi kegiatan", "Fasilitas atau platform", "Relevansi penerapan ilmu", "Peningkatan pemahaman isu"];
   var yearsMap = {};
   var rows = [];
 
@@ -329,61 +258,35 @@ function getGuestLectureData() {
     var eventName = String(row[2] || "").trim();
     var organizer = String(row[4] || "").trim();
     var speaker = String(row[5] || "").trim();
-    var scores = [8, 9, 10, 11].map(function(col) {
-      return parseFivePointScore_(row[col - 1]);
-    });
-
+    var scores = [8, 9, 10, 11].map(function(col) { return parseFivePointScore_(row[col - 1]); });
     if (!timestamp && !eventName && !organizer && !speaker && !scores.some(function(score) { return score !== null; })) return;
 
     var responseYear = getYearFromTimestamp_(timestamp);
     var monthInfo = getMonthInfoFromTimestamp_(timestamp);
     var eventDate = formatSurveyDate_(row[3]);
     var validScores = scores.filter(function(score) { return score !== null; });
-    var average = validScores.length
-      ? validScores.reduce(function(sum, score) { return sum + score; }, 0) / validScores.length
-      : null;
+    var average = validScores.length ? validScores.reduce(function(sum, score) { return sum + score; }, 0) / validScores.length : null;
 
     if (responseYear) yearsMap[responseYear] = true;
     rows.push({
-      rowNo: idx + 2,
-      year: responseYear,
-      month: monthInfo.month,
-      monthKey: monthInfo.monthKey,
-      monthLabel: monthInfo.monthLabel,
-      eventDateYear: eventDate.year,
-      eventDate: eventDate.label,
-      eventName: eventName || "(Nama acara tidak diisi)",
-      organizer: organizer || "(Fakultas/unit tidak diisi)",
-      speaker: speaker || "(Narasumber tidak diisi)",
-      affiliation: String(row[6] || "").trim() || "(Afiliasi tidak diisi)",
-      scores: scores,
-      average: average,
-      takeaway: String(row[11] || "").trim(),
-      suggestion: String(row[12] || "").trim()
+      rowNo: idx + 2, year: responseYear, month: monthInfo.month, monthKey: monthInfo.monthKey, monthLabel: monthInfo.monthLabel,
+      eventDateYear: eventDate.year, eventDate: eventDate.label, eventName: eventName || "(Nama acara tidak diisi)",
+      organizer: organizer || "(Fakultas/unit tidak diisi)", speaker: speaker || "(Narasumber tidak diisi)",
+      affiliation: String(row[6] || "").trim() || "(Afiliasi tidak diisi)", scores: scores, average: average,
+      takeaway: String(row[11] || "").trim(), suggestion: String(row[12] || "").trim()
     });
   });
 
   var validRows = rows.filter(function(row) { return row.average !== null; });
   var allScores = [];
-  rows.forEach(function(row) {
-    row.scores.forEach(function(score) { if (score !== null) allScores.push(score); });
-  });
-  var average = validRows.length
-    ? validRows.reduce(function(sum, row) { return sum + row.average; }, 0) / validRows.length
-    : null;
+  rows.forEach(function(row) { row.scores.forEach(function(score) { if (score !== null) allScores.push(score); }); });
+  var average = validRows.length ? validRows.reduce(function(sum, row) { return sum + row.average; }, 0) / validRows.length : null;
   var positiveScores = allScores.filter(function(score) { return score >= 4; }).length;
 
   var metrics = metricNames.map(function(name, metricIndex) {
     var scores = rows.map(function(row) { return row.scores[metricIndex]; }).filter(function(score) { return score !== null; });
-    var metricAverage = scores.length
-      ? scores.reduce(function(sum, score) { return sum + score; }, 0) / scores.length
-      : null;
-    return {
-      name: name,
-      average: metricAverage,
-      positiveRate: scores.length ? scores.filter(function(score) { return score >= 4; }).length / scores.length : null,
-      responses: scores.length
-    };
+    var metricAverage = scores.length ? scores.reduce(function(sum, score) { return sum + score; }, 0) / scores.length : null;
+    return { name: name, average: metricAverage, positiveRate: scores.length ? scores.filter(function(score) { return score >= 4; }).length / scores.length : null, responses: scores.length };
   });
 
   var distributions = [1, 2, 3, 4, 5].map(function(score) {
@@ -396,9 +299,7 @@ function getGuestLectureData() {
       var value = row[key] || "(Tidak diisi)";
       counts[value] = (counts[value] || 0) + 1;
     });
-    return Object.keys(counts).map(function(name) {
-      return { name: name, count: counts[name] };
-    }).sort(function(a, b) { return b.count - a.count || a.name.localeCompare(b.name); });
+    return Object.keys(counts).map(function(name) { return { name: name, count: counts[name] }; }).sort(function(a, b) { return b.count - a.count || a.name.localeCompare(b.name); });
   }
 
   var eventGroups = {};
@@ -409,13 +310,9 @@ function getGuestLectureData() {
   var events = Object.keys(eventGroups).map(function(name) {
     var group = eventGroups[name];
     var scored = group.filter(function(row) { return row.average !== null; });
-    var eventAverage = scored.length
-      ? scored.reduce(function(sum, row) { return sum + row.average; }, 0) / scored.length
-      : null;
+    var eventAverage = scored.length ? scored.reduce(function(sum, row) { return sum + row.average; }, 0) / scored.length : null;
     return {
-      name: name,
-      count: group.length,
-      average: eventAverage,
+      name: name, count: group.length, average: eventAverage,
       positiveRate: eventAverage === null ? null : group.reduce(function(sum, row) {
         return sum + row.scores.filter(function(score) { return score !== null && score >= 4; }).length;
       }, 0) / Math.max(1, group.reduce(function(sum, row) { return sum + row.scores.filter(function(score) { return score !== null; }).length; }, 0))
@@ -427,19 +324,8 @@ function getGuestLectureData() {
   });
 
   return {
-    rows: rows,
-    years: Object.keys(yearsMap).map(function(year) { return parseInt(year, 10); }).sort(function(a, b) { return b - a; }),
-    summary: {
-      total: rows.length,
-      avg: average,
-      positiveRate: allScores.length ? positiveScores / allScores.length : null,
-      metrics: metrics,
-      distributions: distributions,
-      events: events,
-      faculties: groupedCount("organizer"),
-      speakers: groupedCount("speaker"),
-      feedback: feedback
-    }
+    rows: rows, years: Object.keys(yearsMap).map(function(year) { return parseInt(year, 10); }).sort(function(a, b) { return b - a; }),
+    summary: { total: rows.length, avg: average, positiveRate: allScores.length ? positiveScores / allScores.length : null, metrics: metrics, distributions: distributions, events: events, faculties: groupedCount("organizer"), speakers: groupedCount("speaker"), feedback: feedback }
   };
 }
 
@@ -492,16 +378,11 @@ function getStudentSatisfactionQuestions_() {
 function getLayananUnitData() {
   var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
   var sheet = ss.getSheetByName(SHEET_LAYANAN_UNIT);
-
-  if (!sheet) {
-    throw new Error("Sheet '" + SHEET_LAYANAN_UNIT + "' tidak ditemukan.");
-  }
+  if (!sheet) throw new Error("Sheet '" + SHEET_LAYANAN_UNIT + "' tidak ditemukan.");
 
   var lastRow = sheet.getLastRow();
   var lastCol = sheet.getLastColumn();
-  if (lastRow < 2) {
-    return { rows: [], years: [] };
-  }
+  if (lastRow < 2) return { rows: [], years: [] };
 
   var dataRows = sheet.getRange(2, 1, lastRow - 1, Math.max(lastCol, 6)).getValues();
   var yearsMap = {};
@@ -520,53 +401,27 @@ function getLayananUnitData() {
 
     var score = parseLikertScore_(scoreRaw);
     rows.push({
-      rowNo: idx + 2,
-      timestamp: timestamp ? String(timestamp) : "",
-      year: year,
-      month: monthInfo.month,
-      monthKey: monthInfo.monthKey,
-      monthLabel: monthInfo.monthLabel,
-      unit: unit || "(Unit tidak diisi)",
-      role: role || "(Peran tidak diisi)",
-      service: String(row[3] || "").trim(),
-      scoreLabel: String(scoreRaw || "").trim(),
-      score: score,
-      feedback: String(row[5] || "").trim()
+      rowNo: idx + 2, timestamp: timestamp ? String(timestamp) : "", year: year, month: monthInfo.month, monthKey: monthInfo.monthKey, monthLabel: monthInfo.monthLabel,
+      unit: unit || "(Unit tidak diisi)", role: role || "(Peran tidak diisi)", service: String(row[3] || "").trim(), scoreLabel: String(scoreRaw || "").trim(), score: score, feedback: String(row[5] || "").trim()
     });
   });
 
-  var years = Object.keys(yearsMap).map(function(y) {
-    return parseInt(y, 10);
-  }).sort(function(a, b) {
-    return b - a;
-  });
-
-  return {
-    rows: rows,
-    years: years
-  };
+  var years = Object.keys(yearsMap).map(function(y) { return parseInt(y, 10); }).sort(function(a, b) { return b - a; });
+  return { rows: rows, years: years };
 }
 
 function getStudentSatisfactionData() {
   var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
   var sheet = ss.getSheetByName(SHEET_STUDENT_SATISFACTION);
-
-  if (!sheet) {
-    throw new Error("Sheet '" + SHEET_STUDENT_SATISFACTION + "' tidak ditemukan.");
-  }
+  if (!sheet) throw new Error("Sheet '" + SHEET_STUDENT_SATISFACTION + "' tidak ditemukan.");
 
   var lastRow = sheet.getLastRow();
   var lastCol = sheet.getLastColumn();
   var questions = getStudentSatisfactionQuestions_();
   var categoriesMap = {};
-  questions.forEach(function(q, idx) {
-    q.id = idx;
-    categoriesMap[q.category] = true;
-  });
+  questions.forEach(function(q, idx) { q.id = idx; categoriesMap[q.category] = true; });
 
-  if (lastRow < 2) {
-    return { rows: [], years: [], entryYears: [], programs: [], categories: Object.keys(categoriesMap), questions: questions };
-  }
+  if (lastRow < 2) return { rows: [], years: [], entryYears: [], programs: [], categories: Object.keys(categoriesMap), questions: questions };
 
   var dataRows = sheet.getRange(2, 1, lastRow - 1, Math.max(lastCol, 52)).getValues();
   var yearsMap = {};
@@ -580,9 +435,7 @@ function getStudentSatisfactionData() {
     var monthInfo = getMonthInfoFromTimestamp_(timestamp);
     var entryYear = String(row[2] || "").trim();
     var program = String(row[3] || "").trim();
-    var responses = questions.map(function(q) {
-      return parseAgreementScore_(row[q.col - 1]);
-    });
+    var responses = questions.map(function(q) { return parseAgreementScore_(row[q.col - 1]); });
     var hasScore = responses.some(function(score) { return score !== null; });
     if (!program && !entryYear && !hasScore) return;
 
@@ -591,118 +444,56 @@ function getStudentSatisfactionData() {
     if (program) programsMap[program] = true;
 
     rows.push({
-      rowNo: idx + 2,
-      year: responseYear,
-      month: monthInfo.month,
-      monthKey: monthInfo.monthKey,
-      monthLabel: monthInfo.monthLabel,
-      entryYear: entryYear || "(Tahun masuk tidak diisi)",
-      program: program || "(Program studi tidak diisi)",
-      responses: responses,
-      iks: parseIndexScore_(row[45]),
-      recommendation: parseAgreementScore_(row[46])
+      rowNo: idx + 2, year: responseYear, month: monthInfo.month, monthKey: monthInfo.monthKey, monthLabel: monthInfo.monthLabel,
+      entryYear: entryYear || "(Tahun masuk tidak diisi)", program: program || "(Program studi tidak diisi)",
+      responses: responses, iks: parseIndexScore_(row[45]), recommendation: parseAgreementScore_(row[46])
     });
   });
 
   return {
-    rows: rows,
-    years: Object.keys(yearsMap).map(function(y) { return parseInt(y, 10); }).sort(function(a, b) { return b - a; }),
+    rows: rows, years: Object.keys(yearsMap).map(function(y) { return parseInt(y, 10); }).sort(function(a, b) { return b - a; }),
     entryYears: Object.keys(entryYearsMap).sort(function(a, b) { return String(b).localeCompare(String(a)); }),
     programs: Object.keys(programsMap).sort(function(a, b) { return a.localeCompare(b); }),
-    categories: Object.keys(categoriesMap),
-    questions: questions
+    categories: Object.keys(categoriesMap), questions: questions
   };
 }
 
-// ------------------------------------------------------------
-// Sentiment Analysis berbasis tiga file lexicon di Google Drive.
-// ------------------------------------------------------------
-var SENTIMENT_FOLDER_ID = "1dTIRYHT2LFqdXVZ0S2ZfOpTYHZHXTusg";
-var SENTIMENT_STOPWORDS_FILE = "combined_stop_words.txt";
-var SENTIMENT_NEGATIVE_FILE = "negatif_ta2.txt";
-var SENTIMENT_POSITIVE_FILE = "positif_ta2.txt";
-var SENTIMENT_CACHE_SHEET = "SentimentCache";
+// ============================================================
+// SENTIMENT ANALYSIS — DeepSeek
+// ============================================================
 
-function hashText_(text, lexiconVersion) {
+var DEEPSEEK_API_URL = "https://api.deepseek.com/chat/completions";
+var DEEPSEEK_MODEL = "deepseek-chat";
+var DEEPSEEK_API_KEY_PROP = "DEEPSEEK_API_KEY";
+var DEEPSEEK_API_KEY_FALLBACK = ""; 
+
+var SENTIMENT_CACHE_SHEET = "SentimentCache";
+var SENTIMENT_BATCH_SIZE = 10;
+var SENTIMENT_SLEEP_MS = 1000;
+
+var TOPIC_CACHE_SHEET = "TopicCache";
+var TOPIC_VERSION = "topic_v1";
+var TOPIC_BATCH_SIZE = 10;
+var TOPIC_SLEEP_MS = 1000;
+var TOPIC_CATEGORIES = ["Fasilitas", "Kebersihan", "Kecepatan Layanan", "Sikap Petugas", "Informasi & Komunikasi", "Prosedur & Administrasi", "Parkir & Akses", "Lainnya"];
+
+function hashText_(text, version) {
   var s = String(text || "");
   var hash = 0;
   for (var i = 0; i < s.length; i++) {
     hash = ((hash << 5) - hash) + s.charCodeAt(i);
     hash |= 0;
   }
-  return lexiconVersion + "_s" + hash + "_" + s.length;
+  return version + "_s" + hash + "_" + s.length;
 }
 
-function readSentimentFile_(filename) {
-  var files = DriveApp.getFolderById(SENTIMENT_FOLDER_ID).getFilesByName(filename);
-  if (!files.hasNext()) {
-    throw new Error("File lexicon tidak ditemukan di folder Drive sentimen: " + filename);
-  }
-  var file = files.next();
-  var version = file.getId() + "_" + file.getLastUpdated().getTime();
-  var cacheKey = "sentiment-file-" + filename.replace(/[^a-z0-9]/gi, "_") + "-" + version;
-  var cache = CacheService.getScriptCache();
-  var content = cache.get(cacheKey);
-  if (content === null) {
-    content = file.getBlob().getDataAsString("UTF-8");
-    cache.put(cacheKey, content, 21600);
-  }
-  return { content: content, version: version };
-}
+function sentimentVersion_() { return "llm_v1"; }
 
-function parseSentimentLexicon_(content) {
-  var words = {};
-  String(content || "").split(/\r?\n/).forEach(function(line) {
-    var word = line.trim().toLowerCase();
-    if (word && word.charAt(0) !== "#") words[word] = true;
-  });
-  return words;
-}
-
-function getSentimentLexicons_() {
-  var stopwords = readSentimentFile_(SENTIMENT_STOPWORDS_FILE);
-  var negative = readSentimentFile_(SENTIMENT_NEGATIVE_FILE);
-  var positive = readSentimentFile_(SENTIMENT_POSITIVE_FILE);
-  return {
-    stopwords: parseSentimentLexicon_(stopwords.content),
-    negative: parseSentimentLexicon_(negative.content),
-    positive: parseSentimentLexicon_(positive.content),
-    version: [stopwords.version, negative.version, positive.version].join("_")
-  };
-}
-
-function normalizeSentimentText_(text) {
-  var normalized = String(text || "").toLowerCase();
-  normalized = normalized.replace(/https?:\/\/\S+|www\.\S+/g, " ");
-  normalized = normalized.replace(/<[^>]*>/g, " ");
-  normalized = normalized.replace(/[@#]\S+/g, " ");
-  if (normalized.normalize) {
-    normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-  }
-  normalized = normalized.replace(/\w*\d\w*/g, " ");
-  return normalized.replace(/[^a-z\s]/g, " ").replace(/\s+/g, " ").trim();
-}
-
-function classifySentiment_(text, lexicons) {
-  lexicons = lexicons || getSentimentLexicons_();
-  var tokens = normalizeSentimentText_(text).match(/\w+/g) || [];
-  tokens = tokens.filter(function(token) {
-    return !lexicons.stopwords[token];
-  });
-  var score = 0;
-
-  tokens.forEach(function(token) {
-    if (lexicons.positive[token]) {
-      score++;
-    } else if (lexicons.negative[token]) {
-      score--;
-    }
-  });
-
-  return {
-    label: score > 0 ? "Positif" : (score < 0 ? "Negatif" : "Netral"),
-    score: score
-  };
+function getDeepSeekApiKey_() {
+  var stored = PropertiesService.getScriptProperties().getProperty(DEEPSEEK_API_KEY_PROP);
+  if (stored && String(stored).trim()) return String(stored).trim();
+  if (DEEPSEEK_API_KEY_FALLBACK && String(DEEPSEEK_API_KEY_FALLBACK).trim()) return String(DEEPSEEK_API_KEY_FALLBACK).trim();
+  throw new Error("DeepSeek API key belum diset di Script Properties.");
 }
 
 function getSentimentCacheSheet_() {
@@ -711,8 +502,6 @@ function getSentimentCacheSheet_() {
   if (!sheet) {
     sheet = ss.insertSheet(SENTIMENT_CACHE_SHEET);
     sheet.appendRow(["hash", "feedback", "label", "score"]);
-  } else {
-    sheet.getRange(1, 1, 1, 4).setValues([["hash", "feedback", "label", "score"]]);
   }
   return sheet;
 }
@@ -729,50 +518,345 @@ function readSentimentCache_() {
   return map;
 }
 
-
-
-// Dipanggil dari client: klasifikasikan sekumpulan teks feedback (maks. ~30 per panggilan).
-function classifySentimentChunk(texts) {
-  var lexicons = getSentimentLexicons_();
-  var cache = CacheService.getScriptCache();
-  var sheetCache = readSentimentCache_();
+function getCachedSentimentsByText() {
   var sheet = getSentimentCacheSheet_();
-  var results = [];
-  var newRows = [];
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+  var version = sentimentVersion_();
+  var data = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+  var map = {};
+  data.forEach(function (row) {
+    var hash = String(row[0] || '');
+    if (hash.indexOf(version) !== 0) return;
+    var text = String(row[1] || '').trim();
+    if (!text) return;
+    map[text] = { label: String(row[2] || 'Netral'), score: Number(row[3] || 0) };
+  });
+  return map;
+}
 
-  (texts || []).forEach(function (text) {
-    var clean = String(text || "").trim();
-    var result = { feedback: clean, label: null, score: 0 };
+function callDeepSeek_(texts) {
+  var apiKey = getDeepSeekApiKey_();
+  
+  var systemPrompt = 'Anda adalah analis sentimen profesional. Klasifikasikan komentar Bahasa Indonesia menjadi "Positif", "Negatif", atau "Netral".\n' +
+    'Skor: Positif = 1, Netral = 0, Negatif = -1.\n' +
+    'Balas HANYA dengan JSON array valid tanpa teks pembuka/penutup, tanpa markdown.\n' +
+    'Format: [{"label":"Positif","score":1}, ...]\n' +
+    'Jumlah objek HARUS sama dengan jumlah input (' + texts.length + ').';
 
-    if (clean) {
-      var key = hashText_(clean, lexicons.version);
-      var cached = sheetCache[key] || null;
-
-      if (!cached) {
-        var mem = cache.get(key);
-        if (mem) {
-          var parts = mem.split("|");
-          cached = { label: parts[0], score: parseFloat(parts[1]) || 0 };
-        }
-      }
-
-      if (!cached) {
-        var cls = classifySentiment_(clean, lexicons);
-        cached = { label: cls.label, score: cls.score };
-        newRows.push([key, clean, cls.label, cls.score]);
-        cache.put(key, cls.label + "|" + cls.score, 21600);
-      }
-
-      result.label = cached.label;
-      result.score = cached.score;
-    }
-    results.push(result);
+  var userPrompt = 'Klasifikasikan komentar berikut:\n\n';
+  texts.forEach(function (t, i) { 
+    userPrompt += '[' + (i + 1) + '] ' + String(t).replace(/\r?\n/g, ' ').trim() + '\n'; 
   });
 
-  if (newRows.length) {
-    sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, 4).setValues(newRows);
+  var payload = {
+    model: DEEPSEEK_MODEL,
+    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+    temperature: 0, max_tokens: 4000
+  };
+
+  var response = UrlFetchApp.fetch(DEEPSEEK_API_URL, {
+    method: 'post', contentType: 'application/json',
+    headers: { 'Authorization': 'Bearer ' + apiKey },
+    payload: JSON.stringify(payload), muteHttpExceptions: true
+  });
+
+  var status = response.getResponseCode();
+  var body   = response.getContentText();
+  if (status !== 200) throw new Error('API DeepSeek (' + status + '): ' + body);
+
+  var content = JSON.parse(body).choices[0].message.content;
+  var raw = String(content).trim();
+  var arrayMatch = raw.match(/\[[\s\S]*\]/);
+  if (arrayMatch) raw = arrayMatch[0];
+
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error('Gagal parse JSON: ' + e.message + ' | Raw: ' + raw);
   }
+
+  return parsed.map(function (item, i) {
+    var label = String((item && item.label) || '').trim();
+    if (['Positif', 'Negatif', 'Netral'].indexOf(label) === -1) {
+      var s = Number(item && item.score);
+      label = isNaN(s) ? 'Netral' : (s > 0 ? 'Positif' : (s < 0 ? 'Negatif' : 'Netral'));
+    }
+    return { 
+      feedback: texts[i] || '', 
+      label: label, 
+      score: label === 'Positif' ? 1 : (label === 'Negatif' ? -1 : 0) 
+    };
+  });
+}
+
+function classifySentimentChunk(texts, engine) {
+  var list = (texts || []).map(function (t) { return String(t || "").trim(); });
+  var version = sentimentVersion_();
+  var sheetCache = readSentimentCache_();
+  var results = new Array(list.length);
+  var pendingTexts = [];
+  var pendingIdx = [];
+
+  list.forEach(function (text, i) {
+    if (!text) { results[i] = { feedback: "", label: null, score: 0 }; return; }
+    var key = hashText_(text, version);
+    var cached = sheetCache[key];
+    
+    if (cached && cached.label) {
+      results[i] = { feedback: text, label: cached.label, score: cached.score || 0 };
+    } else {
+      pendingTexts.push(text);
+      pendingIdx.push(i);
+    }
+  });
+
+  if (!pendingTexts.length) return results;
+
+  var sheet = getSentimentCacheSheet_();
+
+  for (var b = 0; b < pendingTexts.length; b += SENTIMENT_BATCH_SIZE) {
+    var batch    = pendingTexts.slice(b, b + SENTIMENT_BATCH_SIZE);
+    var batchIdx = pendingIdx.slice(b, b + SENTIMENT_BATCH_SIZE);
+
+    // Jika API gagal, lempar error ke luar (jangan ditelan)
+    var cls = callDeepSeek_(batch); 
+
+    var currentNewRows = [];
+    cls.forEach(function (c, j) {
+      var idx = batchIdx[j];
+      var text = batch[j];
+      if (idx === undefined) return;
+      
+      results[idx] = { feedback: text, label: c.label, score: c.score };
+      var key = hashText_(text, version);
+      currentNewRows.push([key, text, c.label, c.score]);
+    });
+
+    // SIMPAN SATU PER SATU DENGAN APPEND ROW
+    if (currentNewRows.length > 0) {
+      currentNewRows.forEach(function(row) {
+        sheet.appendRow(row);
+      });
+      Logger.log("✅ Berhasil simpan " + currentNewRows.length + " baris ke sheet.");
+    }
+
+    if (b + SENTIMENT_BATCH_SIZE < pendingTexts.length) {
+      Utilities.sleep(SENTIMENT_SLEEP_MS); 
+    }
+  }
+
   return results;
+}
+
+// ============================================================
+// TOPIK KELUHAN — DeepSeek + cache
+// ============================================================
+
+function getTopicCacheSheet_() {
+  var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(TOPIC_CACHE_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(TOPIC_CACHE_SHEET);
+    sheet.appendRow(["hash", "feedback", "topic"]);
+  }
+  return sheet;
+}
+
+function readTopicCache_() {
+  var sheet = getTopicCacheSheet_();
+  var lastRow = sheet.getLastRow();
+  var map = {};
+  if (lastRow < 2) return map;
+  var data = sheet.getRange(2, 1, lastRow - 1, 3).getValues();
+  data.forEach(function (row) {
+    if (row[0]) map[String(row[0])] = String(row[2] || "");
+  });
+  return map;
+}
+
+function getCachedTopicsByText() {
+  var sheet = getTopicCacheSheet_();
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return {};
+  var data = sheet.getRange(2, 1, lastRow - 1, 3).getValues();
+  var map = {};
+  data.forEach(function (row) {
+    var hash = String(row[0] || '');
+    if (hash.indexOf(TOPIC_VERSION) !== 0) return;
+    var text = String(row[1] || '').trim();
+    var topic = String(row[2] || '').trim();
+    if (text && topic) map[text] = { topic: topic };
+  });
+  return map;
+}
+
+function normalizeTopicName_(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\bdan\b/g, '')
+    .replace(/pelayanan/g, 'layanan')
+    .replace(/[^a-z]/g, '');
+}
+
+function callDeepSeekTopics_(texts) {
+  var apiKey = getDeepSeekApiKey_();
+
+  var systemPrompt = 'Anda adalah analis keluhan layanan kampus. Untuk setiap komentar, pilih SATU topik utama dari daftar berikut:\n' +
+    TOPIC_CATEGORIES.join(', ') + '.\n' +
+    'Gunakan "Lainnya" jika tidak ada topik yang cocok.\n' +
+    'Balas HANYA dengan JSON array valid tanpa teks pembuka/penutup, tanpa markdown.\n' +
+    'Format: [{"topic":"Fasilitas"}, ...]\n' +
+    'Jumlah objek HARUS sama dengan jumlah input (' + texts.length + ').';
+  var userPrompt = 'Tentukan topik utama untuk komentar berikut:\n\n';
+  texts.forEach(function (t, i) {
+    userPrompt += '[' + (i + 1) + '] ' + String(t).replace(/\r?\n/g, ' ').trim() + '\n';
+  });
+
+  var payload = {
+    model: DEEPSEEK_MODEL,
+    messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
+    temperature: 0, max_tokens: 2000
+  };
+
+  var response = UrlFetchApp.fetch(DEEPSEEK_API_URL, {
+    method: 'post', contentType: 'application/json',
+    headers: { 'Authorization': 'Bearer ' + apiKey },
+    payload: JSON.stringify(payload), muteHttpExceptions: true
+  });
+
+  var status = response.getResponseCode();
+  var body = response.getContentText();
+  if (status !== 200) throw new Error('API DeepSeek (' + status + '): ' + body);
+
+  var content = JSON.parse(body).choices[0].message.content;
+  var raw = String(content).trim();
+  var arrayMatch = raw.match(/\[[\s\S]*\]/);
+  if (arrayMatch) raw = arrayMatch[0];
+
+  var parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    throw new Error('Gagal parse JSON topik: ' + e.message + ' | Raw: ' + raw);
+  }
+
+  var results = texts.map(function (text) {
+    return { feedback: text, topic: 'Lainnya' };
+  });
+
+  (parsed || []).forEach(function (item, i) {
+    if (!results[i]) return;
+    var normalizedRaw = normalizeTopicName_((item && item.topic) || '');
+    for (var k = 0; k < TOPIC_CATEGORIES.length; k++) {
+      if (normalizeTopicName_(TOPIC_CATEGORIES[k]) === normalizedRaw) {
+        results[i].topic = TOPIC_CATEGORIES[k];
+        break;
+      }
+    }
+  });
+
+  return results;
+}
+
+function classifyTopicChunk(texts) {
+  var list = (texts || []).map(function (t) { return String(t || "").trim(); });
+  var sheetCache = readTopicCache_();
+  var results = new Array(list.length);
+  var pendingTexts = [];
+  var pendingIdx = [];
+
+  list.forEach(function (text, i) {
+    if (!text) { results[i] = { feedback: "", topic: null }; return; }
+    var key = hashText_(text, TOPIC_VERSION);
+    var cached = sheetCache[key];
+    if (cached) {
+      results[i] = { feedback: text, topic: cached };
+    } else {
+      pendingTexts.push(text);
+      pendingIdx.push(i);
+    }
+  });
+
+  if (!pendingTexts.length) return results;
+
+  var sheet = getTopicCacheSheet_();
+
+  for (var b = 0; b < pendingTexts.length; b += TOPIC_BATCH_SIZE) {
+    var batch = pendingTexts.slice(b, b + TOPIC_BATCH_SIZE);
+    var batchIdx = pendingIdx.slice(b, b + TOPIC_BATCH_SIZE);
+    var cls = callDeepSeekTopics_(batch);
+    var newRows = [];
+
+    cls.forEach(function (c, j) {
+      var idx = batchIdx[j];
+      var text = batch[j];
+      if (idx === undefined) return;
+      results[idx] = { feedback: text, topic: c.topic };
+      newRows.push([hashText_(text, TOPIC_VERSION), text, c.topic]);
+    });
+
+    newRows.forEach(function (row) {
+      sheet.appendRow(row);
+    });
+
+    if (b + TOPIC_BATCH_SIZE < pendingTexts.length) {
+      Utilities.sleep(TOPIC_SLEEP_MS);
+    }
+  }
+
+  return results;
+}
+
+function processPendingSentimentsBackend(engine) {
+  engine = engine || "deepseek";
+  Logger.log("Mengambil data Layanan Unit...");
+  
+  var data = getLayananUnitData().rows;
+  var uniqueTexts = {};
+  data.forEach(function(r) {
+    var t = String(r.feedback || "").trim();
+    if (t) uniqueTexts[t] = true;
+  });
+  
+  var textsArray = Object.keys(uniqueTexts);
+  var cache = readSentimentCache_();
+  var version = sentimentVersion_();
+  var uncached = [];
+  
+  textsArray.forEach(function(t) {
+    if (!cache[hashText_(t, version)]) uncached.push(t);
+  });
+  
+  if (uncached.length === 0) {
+    Logger.log("✅ Semua data sudah ter-cache. Tidak ada yang perlu diproses.");
+    return;
+  }
+  
+  Logger.log("Menemukan " + uncached.length + " komentar yang belum dianalisis.");
+  Logger.log("Memproses 20 komentar pertama..."); 
+  
+  var toProcess = uncached.slice(0, 20);
+  for (var i = 0; i < toProcess.length; i += 10) {
+    var batch = toProcess.slice(i, i + 10);
+    Logger.log("Memproses batch " + (Math.floor(i/10) + 1) + " (" + batch.length + " komentar)...");
+    
+    // Panggil fungsi chunk (Jika error, log akan merah)
+    classifySentimentChunk(batch, engine);
+  }
+  Logger.log("Selesai memproses 20 data. Silakan cek Spreadsheet!");
+}
+
+function tesSimpanManual() {
+  try {
+    var sheet = getSentimentCacheSheet_();
+    sheet.appendRow(["tes_hash_123", "Layanan ini bagus sekali", "Positif", 1]);
+    Logger.log("✅ BERHASIL MENULIS KE SHEET!");
+    Logger.log("Total Baris sekarang: " + sheet.getLastRow());
+  } catch (e) {
+    Logger.log("❌ GAGAL MENULIS: " + e.message);
+  }
 }
 
 function getAllData() {
