@@ -2837,11 +2837,25 @@
 
                 <div class="table-card">
                     <div class="table-header">
-                        <span class="table-header-title">Topik Keluhan <span class="llm-badge" title="Topik keluhan diklasifikasikan langsung oleh LLM">LLM</span></span>
-                        <span class="table-badge" id="sa-topic-count">- topik</span>
+                         <span class="table-header-title">Topik Keluhan <span class="llm-badge" title="Topik keluhan diklasifikasikan langsung oleh LLM">LLM</span></span>
+                          <div style="display:flex;align-items:center;gap:.5rem">
+                              <select class="filter-select" id="sa-topic-filter" onchange="renderTopicDistribution(sentimentRows(filteredLU))" aria-label="Filter topik keluhan">
+                                  <option value="all">Semua Topik</option>
+                                  <option value="Fasilitas">Fasilitas</option>
+                                  <option value="Kebersihan">Kebersihan</option>
+                                  <option value="Kecepatan Layanan">Kecepatan Layanan</option>
+                                  <option value="Sikap Petugas">Sikap Petugas</option>
+                                  <option value="Informasi &amp; Komunikasi">Informasi &amp; Komunikasi</option>
+                                  <option value="Prosedur &amp; Administrasi">Prosedur &amp; Administrasi</option>
+                                  <option value="Parkir &amp; Akses">Parkir &amp; Akses</option>
+                                  <option value="Lainnya">Lainnya</option>
+                              </select>
+                              <button class="btn-download" id="sa-topic-classify-btn" onclick="triggerTopicClassification()" style="padding:10px 14px;font-size:12px;gap:6px">🔄 Analisis Topik</button>
+                              <span class="table-badge" id="sa-topic-count">- topik</span>
+                          </div>
                     </div>
-                    <div class="insight-list" id="sa-topic-list"></div>
-                    <div class="card-note">Setiap komentar negatif diklasifikasikan otomatis ke satu topik utama oleh LLM. Kategori: Fasilitas, Kebersihan, Kecepatan Layanan, Sikap Petugas, Informasi &amp; Komunikasi, Prosedur &amp; Administrasi, Parkir &amp; Akses, dan Lainnya. Hasil disimpan di cache TopicCache.</div>
+                     <div class="insight-list" id="sa-topic-list"></div>
+                     <div class="card-note">Setiap komentar (Positif, Netral, Negatif) diklasifikasikan otomatis ke satu topik utama oleh LLM. Kategori: Fasilitas, Kebersihan, Kecepatan Layanan, Sikap Petugas, Informasi &amp; Komunikasi, Prosedur &amp; Administrasi, Parkir &amp; Akses, dan Lainnya. Hasil disimpan di cache TopicCache.</div>
                 </div>
 
                 <div class="table-card">
@@ -2875,13 +2889,41 @@
 
                 <div class="table-card">
                     <div class="table-header">
+                        <span class="table-header-title">Statistik Responden &amp; Komentar</span>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;padding:1rem">
+                        <div style="border-left:3px solid #0369a1;padding-left:1rem">
+                            <div style="font-size:14px;color:#64748b">Total Responden</div>
+                            <div style="font-size:28px;font-weight:600;color:#0f172a" id="stats-total-responden">-</div>
+                        </div>
+                        <div style="border-left:3px solid #0f766e;padding-left:1rem">
+                            <div style="font-size:14px;color:#64748b">Total Komentar Dianalisis</div>
+                            <div style="font-size:28px;font-weight:600;color:#0f172a" id="stats-total-komentar">-</div>
+                        </div>
+                    </div>
+                    <div class="card-note">Dari <span id="stats-responden-tanpa">-</span> responden tanpa komentar (isi sel: -, kosong, n/a, tidak ada, none, null), hanya <span id="stats-komentar-valid">-</span> responden dengan komentar berisi teks yang dianalisis untuk sentimen dan topik. Sistem mengabaikan baris tanpa teks agar hasil analisis lebih akurat.</div>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-header">
                         <span class="table-header-title">Detail Komentar &amp; Klasifikasi Sentimen <span class="llm-badge" title="Label sentimen dihasilkan oleh LLM">LLM</span></span>
                         <div style="display:flex;align-items:center;gap:.5rem">
-                            <select class="filter-select" id="sa-sentiment-filter" onchange="renderSentimentDetail(sentimentRows(filteredLU))" aria-label="Filter komentar berdasarkan sentimen">
+                            <select class="filter-select" id="sa-sentiment-filter" onchange="renderSentimentDetail(filteredLU)" aria-label="Filter komentar berdasarkan sentimen">
                                 <option value="all">Semua Sentimen</option>
                                 <option value="Negatif">Negatif</option>
                                 <option value="Netral">Netral</option>
                                 <option value="Positif">Positif</option>
+                            </select>
+                            <select class="filter-select" id="sa-detail-topic-filter" onchange="renderSentimentDetail(filteredLU)" aria-label="Filter topik keluhan">
+                                <option value="all">Semua Topik</option>
+                                <option value="Fasilitas">Fasilitas</option>
+                                <option value="Kebersihan">Kebersihan</option>
+                                <option value="Kecepatan Layanan">Kecepatan Layanan</option>
+                                <option value="Sikap Petugas">Sikap Petugas</option>
+                                <option value="Informasi &amp; Komunikasi">Informasi &amp; Komunikasi</option>
+                                <option value="Prosedur &amp; Administrasi">Prosedur &amp; Administrasi</option>
+                                <option value="Parkir &amp; Akses">Parkir &amp; Akses</option>
+                                <option value="Lainnya">Lainnya</option>
                             </select>
                             <span class="table-badge" id="sa-detail-count">- komentar</span>
                         </div>
@@ -2893,6 +2935,7 @@
                                 <th>Unit Layanan</th>
                                 <th>Peran</th>
                                 <th>Komentar</th>
+                                <th>Topik Keluhan</th>
                                 <th>Sentimen</th>
                                 <th>Skor</th>
                             </tr>
@@ -3488,6 +3531,11 @@
         function initLayananUnit(payload) {
             payload = payload || { rows: [], years: [] };
             dataLU = payload.rows || [];
+            dataLU.forEach(function (row) {
+                if (!String(row.feedback || '').trim()) {
+                    row._sentiment = { label: null, score: 0, noComment: true };
+                }
+            });
             filteredLU = dataLU.slice();
 
             var years = payload.years && payload.years.length
@@ -3531,12 +3579,35 @@
                         });
                         applyTopicCacheToRows();
                     }
+                    loadCacheDiagnostics();
                     applyLayananFilters();
                 })
                 .withFailureHandler(function () {
                     applyLayananFilters();
                 })
                 .getCachedTopicsByText();
+        }
+
+        function loadCacheDiagnostics() {
+            renderRespondentStats();
+        }
+
+        function renderRespondentStats() {
+            var rows = filteredLU || [];
+            var total = rows.length;
+            var withText = 0;
+            rows.forEach(function (r) {
+                if (String(r.feedback || '').trim()) withText++;
+            });
+            var without = total - withText;
+            var set = function (id, v) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = v;
+            };
+            set('stats-total-responden', total);
+            set('stats-total-komentar', withText);
+            set('stats-responden-tanpa', without);
+            set('stats-komentar-valid', withText);
         }
 
         function applyLayananFilters() {
@@ -3557,6 +3628,7 @@
             });
 
             renderLayananUnit();
+            renderRespondentStats();
             renderSentimentAnalysis();
         }
 
@@ -3710,6 +3782,7 @@
         // SENTIMENT ANALYSIS — cache-first, no reprocess
         // ═══════════════════════════════════════════════════════════════
         var sentimentCache = {};
+        var sentimentAnalysisRunning = false;
         var topicCacheByText = {};
         var topicFailedTexts = {};
         var topicAnalysisRunning = false;
@@ -3738,21 +3811,54 @@
 
         // Fallback aman — JANGAN memicu request per-row.
         function getRowSentiment(row) {
+            if (row._sentiment && row._sentiment.noComment) return row._sentiment;
             if (!row._sentiment || !row._sentiment.label) {
+                if (!String(row.feedback || '').trim()) {
+                    row._sentiment = { label: null, score: 0, noComment: true };
+                    return row._sentiment;
+                }
                 row._sentiment = { label: 'Netral', score: 0, pending: true };
             }
             return row._sentiment;
         }
 
         // Pecah request ke backend agar tidak timeout & progresif.
+        // Panggil satu chunk ke backend dengan retry otomatis.
+        function callBackendChunk_(fnName, chunk, retries) {
+          retries = (retries === undefined || retries === null) ? 3 : retries;
+          return new Promise(function (resolve) {
+            function attempt(remaining) {
+              var runner = google.script.run
+                .withSuccessHandler(function (results) {
+                  resolve(results || []);
+                })
+                .withFailureHandler(function (error) {
+                  if (remaining > 0) {
+                    setTimeout(function () { attempt(remaining - 1); }, 1500);
+                  } else {
+                    console.warn('Chunk gagal setelah retry:', error);
+                    resolve([]);
+                  }
+                });
+              if (fnName === 'classifyTopicChunk') runner.classifyTopicChunk(chunk);
+              else runner.classifySentimentChunk(chunk);
+            }
+            attempt(retries);
+          });
+        }
+
         function analyzeSentimentBatch(feedbackTexts) {
+          var seen = {};
           var texts = (feedbackTexts || []).filter(function (text) {
-              return text && String(text).trim().length > 0;
+              var t = text && String(text).trim();
+              if (!t || seen[t]) return false;
+              seen[t] = true;
+              return true;
           });
 
           if (texts.length === 0) return Promise.resolve([]);
 
-          var CLIENT_CHUNK = 10; 
+          var CLIENT_CHUNK = 10;
           var chunks = [];
           for (var i = 0; i < texts.length; i += CLIENT_CHUNK) {
               chunks.push(texts.slice(i, i + CLIENT_CHUNK));
@@ -3762,17 +3868,8 @@
 
           return chunks.reduce(function (chain, chunk) {
               return chain.then(function () {
-                  return new Promise(function (resolve) {
-                      google.script.run
-                          .withSuccessHandler(function (results) {
-                              if (results && results.length) allResults = allResults.concat(results);
-                              resolve();
-                          })
-                          .withFailureHandler(function (error) {
-                              console.warn('Chunk error, skipping:', error);
-                              resolve(); // Jangan hentikan proses
-                          })
-                          .classifySentimentChunk(chunk);
+                  return callBackendChunk_('classifySentimentChunk', chunk).then(function (results) {
+                      if (results && results.length) allResults = allResults.concat(results);
                   });
               });
           }, Promise.resolve()).then(function () {
@@ -3809,46 +3906,34 @@
             var rows = sentimentRows(filteredLU);
             var total = rows.length;
 
-            // Pisahkan: mana yang sudah punya hasil sentimen, mana yang belum
-            var uncachedRows = rows.filter(function (row) {
-                return !row._sentiment || !row._sentiment.label;
+            // Proses SEMUA data (bukan hanya yang difilter) agar cache lengkap
+            var missingSet = {};
+            (dataLU || []).forEach(function (row) {
+                var text = String(row.feedback || '').trim();
+                if (!text) return;
+                if (row._sentiment && row._sentiment.label) return;
+                missingSet[text] = true;
             });
-            var cachedCount = total - uncachedRows.length;
+            var missingTexts = Object.keys(missingSet);
 
-            // Kasus 1: semua sudah ada di cache → render instan, TANPA loading
-            if (total === 0 || uncachedRows.length === 0) {
+            var displayCached = rows.filter(function (r) {
+                return r._sentiment && r._sentiment.label;
+            }).length;
+
+            // Kasus 1: semua sudah ada di cache → render instan
+            if (total === 0 || missingTexts.length === 0) {
                 var countsCached = { Positif: 0, Negatif: 0, Netral: 0 };
                 rows.forEach(function (r) {
                     if (r._sentiment && r._sentiment.label) countsCached[r._sentiment.label]++;
                 });
                 updateSentimentDisplay(rows, countsCached, total, {
-                    cached: cachedCount,
+                    cached: displayCached,
                     newCount: 0
                 });
                 return;
             }
 
-            // Kasus 2: ada sebagian/semua yang belum teranalisis
-            var feedbackTexts = uncachedRows.map(function (row) {
-                return String(row.feedback || '').trim();
-            }).filter(function (text) { return text.length > 0; });
-
-            if (feedbackTexts.length === 0) {
-                uncachedRows.forEach(function (row) {
-                    row._sentiment = { label: 'Netral', score: 0 };
-                });
-                var countsEmpty = { Positif: 0, Negatif: 0, Netral: 0 };
-                rows.forEach(function (r) {
-                    if (r._sentiment && r._sentiment.label) countsEmpty[r._sentiment.label]++;
-                });
-                updateSentimentDisplay(rows, countsEmpty, total, {
-                    cached: cachedCount,
-                    newCount: 0
-                });
-                return;
-            }
-
-            // Loading state — sebutkan berapa dari cache, berapa yang baru
+            // Loading state
             document.getElementById('sa-total').textContent = '...';
             document.getElementById('sa-positive').textContent = '...';
             document.getElementById('sa-negative').textContent = '...';
@@ -3857,10 +3942,10 @@
             document.getElementById('sa-negative-sub').textContent = 'analisis sedang berjalan';
             document.getElementById('sa-neutral-sub').textContent = 'analisis sedang berjalan';
             document.getElementById('sa-ai-status').innerHTML =
-                '<strong>Status analisis:</strong> ' + cachedCount + ' komentar diambil dari cache, ' +
-                feedbackTexts.length + ' komentar baru sedang dianalisis…';
+                '<strong>Status analisis:</strong> ' + displayCached + ' komentar diambil dari cache, ' +
+                missingTexts.length + ' komentar baru sedang dianalisis…';
             renderEmpty('sa-unit-tbody', 6, 'Menganalisis sentimen…');
-            renderEmpty('sa-detail-tbody', 6, 'Menganalisis sentimen…');
+            renderEmpty('sa-detail-tbody', 7, 'Menganalisis sentimen…');
             document.getElementById('sa-wordcloud').innerHTML =
                 '<div class="word-cloud-empty">Menganalisis komentar…</div>';
             document.getElementById('sa-wordcloud-count').textContent = '- kata';
@@ -3874,25 +3959,29 @@
                 '<div class="insight-sub">Menganalisis komentar negatif…</div>';
             document.getElementById('sa-topneg-count').textContent = '- unit';
 
-            analyzeSentimentBatch(feedbackTexts)
+            if (sentimentAnalysisRunning) return;
+            sentimentAnalysisRunning = true;
+
+            analyzeSentimentBatch(missingTexts)
                 .then(function (results) {
+                    sentimentAnalysisRunning = false;
                     var resultMap = {};
                     results.forEach(function (result) {
                         if (result && result.feedback) resultMap[result.feedback] = result;
                     });
 
-                    // Pastikan SEMUA uncachedRows punya `_sentiment`
-                    uncachedRows.forEach(function (row) {
+                    // Terapkan ke SEMUA dataLU yang belum punya sentimen
+                    (dataLU || []).forEach(function (row) {
+                        if (row._sentiment && (row._sentiment.label || row._sentiment.noComment)) return;
                         var text = String(row.feedback || '').trim();
                         if (!text) {
-                            row._sentiment = { label: 'Netral', score: 0 };
+                            row._sentiment = { label: null, score: 0, noComment: true };
                             return;
                         }
                         if (resultMap[text] && resultMap[text].label) {
                             var r = resultMap[text];
                             row._sentiment = { label: r.label, score: r.score || 0 };
                         } else if (resultMap[text] && resultMap[text].error) {
-                            // Backend menandai gagal → tampilkan sebagai Netral tapi tandai error
                             row._sentiment = {
                                 label: 'Netral',
                                 score: 0,
@@ -3909,11 +3998,12 @@
                         if (r._sentiment && r._sentiment.label) counts[r._sentiment.label]++;
                     });
                     updateSentimentDisplay(rows, counts, total, {
-                        cached: cachedCount,
-                        newCount: feedbackTexts.length
+                        cached: displayCached,
+                        newCount: missingTexts.length
                     });
                 })
                 .catch(function (error) {
+                    sentimentAnalysisRunning = false;
                     console.warn('Batch sentiment analysis failed:', error);
                     var msg = (error && error.message) ? error.message : String(error);
                     document.getElementById('sa-ai-status').innerHTML =
@@ -3926,7 +4016,7 @@
                         document.getElementById(id + '-sub').textContent = 'analisis gagal';
                     });
                     renderEmpty('sa-unit-tbody', 6, 'Analisis gagal; hasil belum tersedia.');
-                    renderEmpty('sa-detail-tbody', 6, 'Analisis gagal; hasil belum tersedia.');
+                    renderEmpty('sa-detail-tbody', 7, 'Analisis gagal; hasil belum tersedia.');
                     document.getElementById('sa-wordcloud').innerHTML =
                         '<div class="word-cloud-empty">Word cloud tidak tersedia karena analisis gagal.</div>';
                     document.getElementById('sa-wordcloud-count').textContent = '0 kata';
@@ -3967,7 +4057,7 @@
             renderTopicAnalysis(rows);
             renderSentimentPerUnit(rows);
             renderTopNegativePerUnit(rows);
-            renderSentimentDetail(rows);
+            renderSentimentDetail(filteredLU);
         }
 
         function setSentimentKpi(id, count, total) {
@@ -4296,7 +4386,7 @@
             var list = (texts || []).filter(function (text) {
                 return String(text || '').trim();
             });
-            if (!list.length) return Promise.resolve([]);
+            if (!list.length) return Promise.resolve({ results: [], failedTexts: [] });
 
             var CLIENT_CHUNK = 10;
             var chunks = [];
@@ -4306,155 +4396,133 @@
 
             var allResults = [];
             var failedTexts = [];
-            var lastError = null;
 
             return chunks.reduce(function (chain, chunk) {
                 return chain.then(function () {
-                    return new Promise(function (resolve) {
-                        google.script.run
-                            .withSuccessHandler(function (results) {
-                                if (results && results.length) allResults = allResults.concat(results);
-                                resolve();
-                            })
-                            .withFailureHandler(function (error) {
-                                lastError = error;
-                                failedTexts = failedTexts.concat(chunk);
-                                resolve();
-                            })
-                            .classifyTopicChunk(chunk);
+                    return callBackendChunk_('classifyTopicChunk', chunk).then(function (results) {
+                        if (results && results.length) allResults = allResults.concat(results);
+                        if (!results || !results.length) failedTexts = failedTexts.concat(chunk);
                     });
                 });
             }, Promise.resolve()).then(function () {
-                if (!allResults.length && lastError) throw lastError;
                 return { results: allResults, failedTexts: failedTexts };
             });
         }
 
-        function renderTopicAnalysis(rows) {
-            var list = document.getElementById('sa-topic-list');
-            var countEl = document.getElementById('sa-topic-count');
-            if (!list) return;
+         function renderTopicAnalysis(rows) {
+             var list = document.getElementById('sa-topic-list');
+             var countEl = document.getElementById('sa-topic-count');
+             if (!list) return;
 
-            var negativeRows = (rows || []).filter(function (row) {
-                return getRowSentiment(row).label === 'Negatif';
-            });
+             var displayRows = (rows || []);
 
-            negativeRows.forEach(function (row) {
-                var text = String(row.feedback || '').trim();
-                if (!row._topic && text && topicCacheByText[text]) {
-                    row._topic = { topic: topicCacheByText[text].topic };
-                }
-            });
+             applyTopicCacheToRows();
 
-            if (!negativeRows.length) {
-                if (countEl) countEl.textContent = '0 topik';
-                list.innerHTML = '<div class="insight-sub">Tidak ada komentar negatif untuk filter ini.</div>';
-                return;
-            }
+             var pendingTexts = [];
+             var seen = {};
+             (dataLU || []).forEach(function (row) {
+                 var text = String(row.feedback || '').trim();
+                 if (!text || seen[text]) return;
+                 if (topicCacheByText[text]) return;
+                 if (topicFailedTexts[text]) return;
+                 seen[text] = true;
+                 pendingTexts.push(text);
+             });
 
-            var pendingTexts = [];
-            var seen = {};
-            negativeRows.forEach(function (row) {
-                var text = String(row.feedback || '').trim();
-                if (!text || seen[text]) return;
-                if (row._topic && row._topic.topic) return;
-                if (topicFailedTexts[text]) return;
-                seen[text] = true;
-                pendingTexts.push(text);
-            });
+             if (!pendingTexts.length) {
+                 renderTopicDistribution(displayRows);
+                 return;
+             }
 
-            if (!pendingTexts.length) {
-                renderTopicDistribution(negativeRows);
-                return;
-            }
+             if (countEl) countEl.textContent = 'menganalisis…';
+             list.innerHTML = '<div class="insight-sub">Mengklasifikasikan ' + pendingTexts.length +
+                 ' komentar ke topik keluhan…</div>';
 
-            if (!isSentimentTabVisible()) {
-                renderTopicDistribution(negativeRows);
-                return;
-            }
+             if (topicAnalysisRunning) return;
+             topicAnalysisRunning = true;
 
-            if (countEl) countEl.textContent = 'menganalisis…';
-            list.innerHTML = '<div class="insight-sub">Mengklasifikasikan ' + pendingTexts.length +
-                ' komentar negatif ke topik keluhan…</div>';
+             classifyTopicChunks(pendingTexts)
+                 .then(function (outcome) {
+                     topicAnalysisRunning = false;
+                     var results = (outcome && outcome.results) || [];
+                     var failed = (outcome && outcome.failedTexts) || [];
+                     results.forEach(function (item) {
+                         if (item && item.feedback && item.topic) {
+                             topicCacheByText[item.feedback] = { topic: item.topic };
+                         }
+                     });
+                     failed.forEach(function (text) {
+                         topicFailedTexts[text] = true;
+                     });
+                     applyTopicCacheToRows();
+                     var current = sentimentRows(filteredLU);
+                     renderTopicDistribution(current);
+                     if (isSentimentTabVisible()) {
+                     renderTopNegativePerUnit(current);
+                         renderSentimentDetail(filteredLU);
+                     }
+                     loadCacheDiagnostics();
+                 })
+                 .catch(function (error) {
+                     topicAnalysisRunning = false;
+                     var msg = (error && error.message) ? error.message : String(error);
+                     if (countEl) countEl.textContent = 'gagal';
+                     list.innerHTML = '<div class="insight-sub">Klasifikasi topik gagal. ' + esc(msg) + '</div>';
+                 });
+         }
 
-            if (topicAnalysisRunning) return;
-            topicAnalysisRunning = true;
+         function renderTopicDistribution(rows) {
+             var list = document.getElementById('sa-topic-list');
+             var countEl = document.getElementById('sa-topic-count');
+             if (!list) return;
 
-            classifyTopicChunks(pendingTexts)
-                .then(function (outcome) {
-                    topicAnalysisRunning = false;
-                    var results = (outcome && outcome.results) || [];
-                    var failed = (outcome && outcome.failedTexts) || [];
-                    results.forEach(function (item) {
-                        if (item && item.feedback && item.topic) {
-                            topicCacheByText[item.feedback] = { topic: item.topic };
-                        }
-                    });
-                    failed.forEach(function (text) {
-                        topicFailedTexts[text] = true;
-                    });
-                    applyTopicCacheToRows();
-                    if (isSentimentTabVisible()) {
-                        var current = sentimentRows(filteredLU);
-                        renderTopicAnalysis(current);
-                        renderTopNegativePerUnit(current);
-                    }
-                })
-                .catch(function (error) {
-                    topicAnalysisRunning = false;
-                    var msg = (error && error.message) ? error.message : String(error);
-                    if (countEl) countEl.textContent = 'gagal';
-                    list.innerHTML = '<div class="insight-sub">Klasifikasi topik gagal. ' + esc(msg) + '</div>';
-                });
-        }
+             var selectedTopic = document.getElementById('sa-topic-filter').value;
+             var stats = {};
+             var classified = 0;
+             rows.forEach(function (row) {
+                 var topic = row._topic && row._topic.topic ? row._topic.topic : null;
+                 if (!topic) return;
+                 stats[topic] = (stats[topic] || 0) + 1;
+                 classified++;
+             });
 
-        function renderTopicDistribution(rows) {
-            var list = document.getElementById('sa-topic-list');
-            var countEl = document.getElementById('sa-topic-count');
-            if (!list) return;
+             var items = Object.keys(stats).map(function (topic) {
+                 return { topic: topic, count: stats[topic] };
+             }).sort(function (a, b) {
+                 return b.count - a.count || a.topic.localeCompare(b.topic);
+             });
 
-            var stats = {};
-            var classified = 0;
-            rows.forEach(function (row) {
-                var topic = row._topic && row._topic.topic ? row._topic.topic : null;
-                if (!topic) return;
-                stats[topic] = (stats[topic] || 0) + 1;
-                classified++;
-            });
+             if (selectedTopic !== 'all') {
+                 items = items.filter(function (item) { return item.topic === selectedTopic; });
+             }
 
-            var items = Object.keys(stats).map(function (topic) {
-                return { topic: topic, count: stats[topic] };
-            }).sort(function (a, b) {
-                return b.count - a.count || a.topic.localeCompare(b.topic);
-            });
+             if (countEl) countEl.textContent = items.length + ' topik';
+             if (!items.length) {
+                 var failedOnly = rows.length - classified;
+                 list.innerHTML = '<div class="insight-sub">Belum ada topik keluhan yang terklasifikasi.' +
+                     (failedOnly ? ' ' + failedOnly + ' komentar belum berhasil dianalisis.' : '') + '</div>';
+                 return;
+             }
 
-            if (countEl) countEl.textContent = items.length + ' topik';
-            if (!items.length) {
-                var failedOnly = rows.length - classified;
-                list.innerHTML = '<div class="insight-sub">Belum ada topik keluhan yang terklasifikasi.' +
-                    (failedOnly ? ' ' + failedOnly + ' komentar belum berhasil dianalisis.' : '') + '</div>';
-                return;
-            }
-
-            var html = '';
-            items.forEach(function (item) {
-                var pct = classified ? item.count / classified : 0;
-                html += '<div class="insight-row">'
-                    + '<div class="insight-main">'
-                    + '<div class="insight-title">' + esc(item.topic) + '</div>'
-                    + '<div class="insight-sub">' + item.count + ' komentar</div>'
-                    + '<div class="meter"><div class="meter-fill" style="width:' + (pct * 100) + '%;background:' + topicColor(item.topic) + '"></div></div>'
-                    + '</div>'
-                    + '<span class="score-pill sentiment-neutral">' + (pct * 100).toFixed(1) + '%</span>'
-                    + '</div>';
-            });
-            html += '<div class="insight-sub" style="margin-top:2px">Total ' + classified + ' komentar negatif terklasifikasi.</div>';
-            var unclassified = rows.length - classified;
-            if (unclassified > 0) {
-                html += '<div class="insight-sub" style="margin-top:2px">' + unclassified + ' komentar belum berhasil diklasifikasi.</div>';
-            }
-            list.innerHTML = html;
-        }
+             var html = '';
+             items.forEach(function (item) {
+                 var pct = classified ? item.count / classified : 0;
+                 html += '<div class="insight-row">'
+                     + '<div class="insight-main">'
+                     + '<div class="insight-title">' + esc(item.topic) + '</div>'
+                     + '<div class="insight-sub">' + item.count + ' komentar</div>'
+                     + '<div class="meter"><div class="meter-fill" style="width:' + (pct * 100) + '%;background:' + topicColor(item.topic) + '"></div></div>'
+                     + '</div>'
+                     + '<span class="score-pill sentiment-neutral">' + (pct * 100).toFixed(1) + '%</span>'
+                     + '</div>';
+             });
+             html += '<div class="insight-sub" style="margin-top:2px">Total ' + classified + ' komentar terklasifikasi.</div>';
+             var unclassified = rows.length - classified;
+             if (unclassified > 0) {
+                 html += '<div class="insight-sub" style="margin-top:2px">' + unclassified + ' komentar belum berhasil diklasifikasi.</div>';
+             }
+             list.innerHTML = html;
+         }
 
         // ── Top 5 komentar negatif per unit ─────────────────────────
         function renderTopNegativePerUnit(rows) {
@@ -4552,40 +4620,62 @@
             return '<td><span class="score-pill ' + sentimentClass(label) + '">' + count + ' (' + pct + '%)</span></td>';
         }
 
-        function renderSentimentDetail(rows) {
-            var selectedSentiment = document.getElementById('sa-sentiment-filter').value;
-            rows = rows.filter(function(row) {
-                return selectedSentiment === 'all' || getRowSentiment(row).label === selectedSentiment;
-            });
-            var priority = { Negatif: 0, Netral: 1, Positif: 2 };
-            var items = rows.slice().sort(function (a, b) {
-                var sa = getRowSentiment(a).label;
-                var sb = getRowSentiment(b).label;
-                return (priority[sa] - priority[sb]) || String(a.unit).localeCompare(String(b.unit));
-            });
-            document.getElementById('sa-detail-count').textContent = items.length + ' komentar';
-            if (!items.length) {
-                renderEmpty('sa-detail-tbody', 6, 'Tidak ada komentar untuk filter ini.');
-                return;
-            }
+         function renderSentimentDetail(rows) {
+             var selectedSentiment = document.getElementById('sa-sentiment-filter').value;
+             var selectedTopic = document.getElementById('sa-detail-topic-filter').value;
+             rows = (rows || []).filter(function(row) {
+                 var s = getRowSentiment(row);
+                 var isNoComment = !!s.noComment;
+                 var sentimentMatch = selectedSentiment === 'all' || s.label === selectedSentiment;
+                 var topicMatch = selectedTopic === 'all' || (row._topic && row._topic.topic === selectedTopic);
+                 return sentimentMatch && topicMatch;
+             });
+             var priority = { Negatif: 0, Netral: 1, Positif: 2 };
+             var items = rows.slice().sort(function (a, b) {
+                 var sa = getRowSentiment(a);
+                 var sb = getRowSentiment(b);
+                 var pa = sa.noComment ? 3 : priority[sa.label];
+                 var pb = sb.noComment ? 3 : priority[sb.label];
+                 return (pa - pb) || String(a.unit).localeCompare(String(b.unit));
+             });
+             document.getElementById('sa-detail-count').textContent = items.length + ' baris';
+             if (!items.length) {
+                 renderEmpty('sa-detail-tbody', 7, 'Tidak ada komentar untuk filter ini.');
+                 return;
+             }
 
-            var html = '';
-            items.forEach(function (r, i) {
-                var s = getRowSentiment(r);
-                var labelCell = s.pending
-                    ? '<span class="score-pill sentiment-neutral">Menunggu…</span>'
-                    : '<span class="score-pill ' + sentimentClass(s.label) + '">' + s.label + '</span>';
-                html += '<tr>'
-                    + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
-                    + '<td style="font-weight:600">' + esc(r.unit) + '</td>'
-                    + '<td>' + esc(r.role) + '</td>'
-                    + '<td class="comment-cell">' + esc(r.feedback) + '</td>'
-                    + '<td>' + labelCell + '</td>'
-                    + '<td>' + s.score + '</td>'
-                    + '</tr>';
-            });
-            document.getElementById('sa-detail-tbody').innerHTML = html;
-        }
+              var html = '';
+              items.forEach(function (r, i) {
+                  var s = getRowSentiment(r);
+                  var labelCell;
+                  if (s.noComment) {
+                      labelCell = '<span class="score-pill sentiment-neutral">Tidak ada komentar</span>';
+                  } else if (s.pending) {
+                      labelCell = '<span class="score-pill sentiment-neutral">Menunggu…</span>';
+                  } else {
+                      labelCell = '<span class="score-pill ' + sentimentClass(s.label) + '">' + s.label + '</span>';
+                  }
+                  var topic = (r._topic && r._topic.topic) ? esc(r._topic.topic) : '—';
+                  var topicCell = '<span class="topneg-topic">' + topic + '</span>';
+                  var commentText = r.feedbackRaw !== undefined && r.feedbackRaw !== ''
+                      ? r.feedbackRaw
+                      : (r.feedback || '');
+                  var commentCell = commentText
+                      ? esc(commentText)
+                      : '<span style="color:#94a3b8;font-style:italic">Tidak ada komentar</span>';
+                  var scoreCell = s.noComment ? '—' : s.score;
+                  html += '<tr>'
+                      + '<td><div class="rank-num">' + (i + 1) + '</div></td>'
+                      + '<td style="font-weight:600">' + esc(r.unit) + '</td>'
+                      + '<td>' + esc(r.role) + '</td>'
+                      + '<td class="comment-cell">' + commentCell + '</td>'
+                      + '<td>' + topicCell + '</td>'
+                      + '<td>' + labelCell + '</td>'
+                      + '<td>' + scoreCell + '</td>'
+                      + '</tr>';
+              });
+              document.getElementById('sa-detail-tbody').innerHTML = html;
+         }
 
         // ── Student Satisfaction ────────────────────────────────────
         function initStudentSatisfaction(payload) {
@@ -5737,10 +5827,30 @@
         if (window.visualViewport) {
             window.visualViewport.addEventListener('resize', checkMobile);
         }
-        setTimeout(checkMobile, 300);
-        setTimeout(checkMobile, 1000);
+         setTimeout(checkMobile, 300);
+         setTimeout(checkMobile, 1000);
 
-        loadDashboardData();
+         function triggerTopicClassification() {
+             var rows = sentimentRows(filteredLU);
+             if (!rows.length) {
+                 alert('Tidak ada komentar untuk dianalisis.');
+                 return;
+             }
+             var btn = document.getElementById('sa-topic-classify-btn');
+             if (btn) btn.disabled = true;
+             document.getElementById('sa-topic-list').innerHTML = '<div class="insight-sub">Mengklasifikasikan semua komentar ke topik keluhan…</div>';
+             document.getElementById('sa-topic-count').textContent = 'menganalisis…';
+             topicFailedTexts = {};
+             topicCacheByText = {};
+             (dataLU || []).forEach(function (r) { delete r._topic; });
+             topicAnalysisRunning = false;
+             renderTopicAnalysis(rows);
+             setTimeout(function () {
+                 if (btn) btn.disabled = false;
+             }, 2000);
+         }
+
+         loadDashboardData();
     </script>
 </body>
 

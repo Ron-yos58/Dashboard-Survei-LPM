@@ -375,6 +375,15 @@ function getStudentSatisfactionQuestions_() {
   ];
 }
 
+function normalizeFeedback_(value) {
+  var text = String(value == null ? "" : value).trim();
+  if (!text) return "";
+  var lower = text.toLowerCase();
+  if (/^[-–—.\s]+$/.test(text)) return "";
+  if (["n/a", "na", "n.a.", "tidak ada", "tidak ada komentar", "none", "null", "kosong"].indexOf(lower) !== -1) return "";
+  return text;
+}
+
 function getLayananUnitData() {
   var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
   var sheet = ss.getSheetByName(SHEET_LAYANAN_UNIT);
@@ -400,9 +409,12 @@ function getLayananUnitData() {
     if (year) yearsMap[year] = true;
 
     var score = parseLikertScore_(scoreRaw);
+    var feedback = normalizeFeedback_(row[5]);
+    var feedbackRaw = String(row[5] == null ? "" : row[5]).trim();
+    
     rows.push({
       rowNo: idx + 2, timestamp: timestamp ? String(timestamp) : "", year: year, month: monthInfo.month, monthKey: monthInfo.monthKey, monthLabel: monthInfo.monthLabel,
-      unit: unit || "(Unit tidak diisi)", role: role || "(Peran tidak diisi)", service: String(row[3] || "").trim(), scoreLabel: String(scoreRaw || "").trim(), score: score, feedback: String(row[5] || "").trim()
+      unit: unit || "(Unit tidak diisi)", role: role || "(Peran tidak diisi)", service: String(row[3] || "").trim(), scoreLabel: String(scoreRaw || "").trim(), score: score, feedback: feedback, feedbackRaw: feedbackRaw
     });
   });
 
@@ -594,60 +606,80 @@ function callDeepSeek_(texts) {
 function classifySentimentChunk(texts, engine) {
   var list = (texts || []).map(function (t) { return String(t || "").trim(); });
   var version = sentimentVersion_();
-  var sheetCache = readSentimentCache_();
-  var results = new Array(list.length);
-  var pendingTexts = [];
-  var pendingIdx = [];
 
-  list.forEach(function (text, i) {
-    if (!text) { results[i] = { feedback: "", label: null, score: 0 }; return; }
-    var key = hashText_(text, version);
-    var cached = sheetCache[key];
-    
-    if (cached && cached.label) {
-      results[i] = { feedback: text, label: cached.label, score: cached.score || 0 };
-    } else {
-      pendingTexts.push(text);
-      pendingIdx.push(i);
-    }
-  });
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var sheetCache = readSentimentCache_();
+    var results = new Array(list.length);
+    var pendingTexts = [];
+    var pendingIdx = [];
+    var seen = {};
 
-  if (!pendingTexts.length) return results;
-
-  var sheet = getSentimentCacheSheet_();
-
-  for (var b = 0; b < pendingTexts.length; b += SENTIMENT_BATCH_SIZE) {
-    var batch    = pendingTexts.slice(b, b + SENTIMENT_BATCH_SIZE);
-    var batchIdx = pendingIdx.slice(b, b + SENTIMENT_BATCH_SIZE);
-
-    // Jika API gagal, lempar error ke luar (jangan ditelan)
-    var cls = callDeepSeek_(batch); 
-
-    var currentNewRows = [];
-    cls.forEach(function (c, j) {
-      var idx = batchIdx[j];
-      var text = batch[j];
-      if (idx === undefined) return;
-      
-      results[idx] = { feedback: text, label: c.label, score: c.score };
+    list.forEach(function (text, i) {
+      if (!text) { results[i] = { feedback: "", label: null, score: 0 }; return; }
       var key = hashText_(text, version);
-      currentNewRows.push([key, text, c.label, c.score]);
+      var cached = sheetCache[key];
+
+      if (cached && cached.label) {
+        results[i] = { feedback: text, label: cached.label, score: cached.score || 0 };
+      } else if (seen[key]) {
+        results[i] = { feedback: text, label: null, score: 0, pendingDup: true };
+      } else {
+        seen[key] = true;
+        pendingTexts.push(text);
+        pendingIdx.push(i);
+      }
     });
 
-    // SIMPAN SATU PER SATU DENGAN APPEND ROW
-    if (currentNewRows.length > 0) {
-      currentNewRows.forEach(function(row) {
-        sheet.appendRow(row);
+    if (!pendingTexts.length) return results;
+
+    var sheet = getSentimentCacheSheet_();
+
+    for (var b = 0; b < pendingTexts.length; b += SENTIMENT_BATCH_SIZE) {
+      var batch    = pendingTexts.slice(b, b + SENTIMENT_BATCH_SIZE);
+      var batchIdx = pendingIdx.slice(b, b + SENTIMENT_BATCH_SIZE);
+
+      var cls = callDeepSeek_(batch);
+
+      var currentNewRows = [];
+      cls.forEach(function (c, j) {
+        var idx = batchIdx[j];
+        var text = batch[j];
+        if (idx === undefined) return;
+
+        results[idx] = { feedback: text, label: c.label, score: c.score };
+        var key = hashText_(text, version);
+        if (!sheetCache[key]) {
+          currentNewRows.push([key, text, c.label, c.score]);
+          sheetCache[key] = { label: c.label, score: c.score };
+        }
       });
-      Logger.log("✅ Berhasil simpan " + currentNewRows.length + " baris ke sheet.");
+
+      if (currentNewRows.length > 0) {
+        sheet.getRange(sheet.getLastRow() + 1, 1, currentNewRows.length, 4).setValues(currentNewRows);
+        Logger.log("✅ Berhasil simpan " + currentNewRows.length + " baris ke sheet.");
+      }
+
+      if (b + SENTIMENT_BATCH_SIZE < pendingTexts.length) {
+        Utilities.sleep(SENTIMENT_SLEEP_MS);
+      }
     }
 
-    if (b + SENTIMENT_BATCH_SIZE < pendingTexts.length) {
-      Utilities.sleep(SENTIMENT_SLEEP_MS); 
-    }
+    // Isi hasil untuk teks duplikat / yang belum terisi dari cache
+    list.forEach(function (text, i) {
+      if (!text) return;
+      if (results[i] && results[i].label) return;
+      var key = hashText_(text, version);
+      if (sheetCache[key] && sheetCache[key].label) {
+        results[i] = { feedback: text, label: sheetCache[key].label, score: sheetCache[key].score || 0 };
+      }
+    });
+
+    return results;
+  } finally {
+    lock.releaseLock();
   }
-
-  return results;
 }
 
 // ============================================================
@@ -690,6 +722,43 @@ function getCachedTopicsByText() {
     if (text && topic) map[text] = { topic: topic };
   });
   return map;
+}
+
+// Hapus baris dengan hash yang benar-benar kembar saja (keep first).
+// TIDAK menghapus berdasarkan versi agar data lama tidak hilang.
+function dedupeCacheSheet_(sheet, cols) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 2) return { before: 0, after: 0, removed: 0 };
+  var data = sheet.getRange(2, 1, lastRow - 1, cols).getValues();
+  var seen = {};
+  var kept = [];
+  var droppedNoHash = 0;
+  data.forEach(function (row) {
+    var hash = String(row[0] || '').trim();
+    if (!hash) { droppedNoHash++; return; }
+    if (seen[hash]) return;
+    seen[hash] = true;
+    kept.push(row);
+  });
+  sheet.getRange(2, 1, lastRow - 1, cols).clearContent();
+  if (kept.length) sheet.getRange(2, 1, kept.length, cols).setValues(kept);
+  return { before: data.length, after: kept.length, removed: data.length - kept.length };
+}
+
+function dedupeSentimentCache() {
+  var result = dedupeCacheSheet_(getSentimentCacheSheet_(), 4);
+  Logger.log("SentimentCache: " + result.before + " -> " + result.after + " (hapus " + result.removed + ")");
+  return result;
+}
+
+function dedupeTopicCache() {
+  var result = dedupeCacheSheet_(getTopicCacheSheet_(), 3);
+  Logger.log("TopicCache: " + result.before + " -> " + result.after + " (hapus " + result.removed + ")");
+  return result;
+}
+
+function dedupeAllCaches() {
+  return { sentiment: dedupeSentimentCache(), topic: dedupeTopicCache() };
 }
 
 function normalizeTopicName_(value) {
@@ -762,51 +831,75 @@ function callDeepSeekTopics_(texts) {
 
 function classifyTopicChunk(texts) {
   var list = (texts || []).map(function (t) { return String(t || "").trim(); });
-  var sheetCache = readTopicCache_();
-  var results = new Array(list.length);
-  var pendingTexts = [];
-  var pendingIdx = [];
 
-  list.forEach(function (text, i) {
-    if (!text) { results[i] = { feedback: "", topic: null }; return; }
-    var key = hashText_(text, TOPIC_VERSION);
-    var cached = sheetCache[key];
-    if (cached) {
-      results[i] = { feedback: text, topic: cached };
-    } else {
-      pendingTexts.push(text);
-      pendingIdx.push(i);
-    }
-  });
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var sheetCache = readTopicCache_();
+    var results = new Array(list.length);
+    var pendingTexts = [];
+    var pendingIdx = [];
+    var seen = {};
 
-  if (!pendingTexts.length) return results;
-
-  var sheet = getTopicCacheSheet_();
-
-  for (var b = 0; b < pendingTexts.length; b += TOPIC_BATCH_SIZE) {
-    var batch = pendingTexts.slice(b, b + TOPIC_BATCH_SIZE);
-    var batchIdx = pendingIdx.slice(b, b + TOPIC_BATCH_SIZE);
-    var cls = callDeepSeekTopics_(batch);
-    var newRows = [];
-
-    cls.forEach(function (c, j) {
-      var idx = batchIdx[j];
-      var text = batch[j];
-      if (idx === undefined) return;
-      results[idx] = { feedback: text, topic: c.topic };
-      newRows.push([hashText_(text, TOPIC_VERSION), text, c.topic]);
+    list.forEach(function (text, i) {
+      if (!text) { results[i] = { feedback: "", topic: null }; return; }
+      var key = hashText_(text, TOPIC_VERSION);
+      var cached = sheetCache[key];
+      if (cached) {
+        results[i] = { feedback: text, topic: cached };
+      } else if (seen[key]) {
+        results[i] = { feedback: text, topic: null, pendingDup: true };
+      } else {
+        seen[key] = true;
+        pendingTexts.push(text);
+        pendingIdx.push(i);
+      }
     });
 
-    newRows.forEach(function (row) {
-      sheet.appendRow(row);
+    if (!pendingTexts.length) return results;
+
+    var sheet = getTopicCacheSheet_();
+
+    for (var b = 0; b < pendingTexts.length; b += TOPIC_BATCH_SIZE) {
+      var batch = pendingTexts.slice(b, b + TOPIC_BATCH_SIZE);
+      var batchIdx = pendingIdx.slice(b, b + TOPIC_BATCH_SIZE);
+      var cls = callDeepSeekTopics_(batch);
+      var newRows = [];
+
+      cls.forEach(function (c, j) {
+        var idx = batchIdx[j];
+        var text = batch[j];
+        if (idx === undefined) return;
+        results[idx] = { feedback: text, topic: c.topic };
+        var key = hashText_(text, TOPIC_VERSION);
+        if (!sheetCache[key]) {
+          newRows.push([key, text, c.topic]);
+          sheetCache[key] = c.topic;
+        }
+      });
+
+      if (newRows.length > 0) {
+        sheet.getRange(sheet.getLastRow() + 1, 1, newRows.length, 3).setValues(newRows);
+      }
+
+      if (b + TOPIC_BATCH_SIZE < pendingTexts.length) {
+        Utilities.sleep(TOPIC_SLEEP_MS);
+      }
+    }
+
+    list.forEach(function (text, i) {
+      if (!text) return;
+      if (results[i] && results[i].topic) return;
+      var key = hashText_(text, TOPIC_VERSION);
+      if (sheetCache[key]) {
+        results[i] = { feedback: text, topic: sheetCache[key] };
+      }
     });
 
-    if (b + TOPIC_BATCH_SIZE < pendingTexts.length) {
-      Utilities.sleep(TOPIC_SLEEP_MS);
-    }
+    return results;
+  } finally {
+    lock.releaseLock();
   }
-
-  return results;
 }
 
 function processPendingSentimentsBackend(engine) {
@@ -868,4 +961,54 @@ function getAllData() {
     studentSatisfaction: getStudentSatisfactionData(),
     guestLecture: getGuestLectureData()
   };
+}
+
+// Diagnostik: di mana cache disimpan & berapa jumlahnya.
+function getCacheDiagnostics() {
+  var ss = SpreadsheetApp.openById(LAYANAN_UNIT_SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_LAYANAN_UNIT);
+  var sc = ss.getSheetByName(SENTIMENT_CACHE_SHEET);
+  var tc = ss.getSheetByName(TOPIC_CACHE_SHEET);
+  
+  var totalRowsSheet = sheet ? Math.max(0, sheet.getLastRow() - 1) : 0;
+  var rows = getLayananUnitData().rows;
+  var uniq = {};
+  rows.forEach(function (r) {
+    var t = normalizeFeedback_(r.feedback);
+    if (t) uniq[t] = true;
+  });
+  
+  return {
+    spreadsheetId: LAYANAN_UNIT_SPREADSHEET_ID,
+    spreadsheetUrl: ss.getUrl(),
+    sentimentCacheSheet: SENTIMENT_CACHE_SHEET,
+    topicCacheSheet: TOPIC_CACHE_SHEET,
+    sentimentRows: sc ? Math.max(0, sc.getLastRow() - 1) : -1,
+    topicRows: tc ? Math.max(0, tc.getLastRow() - 1) : -1,
+    sourceRows: totalRowsSheet,
+    processedRows: rows.length,
+    uniqueFeedback: Object.keys(uniq).length
+  };
+}
+
+// Menu spreadsheet: bersihkan duplikat cache agar jumlah cache
+// sama dengan jumlah komentar pada sheet sumber.
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Dasbor LPM')
+    .addItem('Bersihkan Duplikat Cache', 'menuBersihkanCache')
+    .addToUi();
+}
+
+function menuBersihkanCache() {
+  var result = dedupeAllCaches();
+  var msg = 'SentimentCache: ' + result.sentiment.before + ' -> ' + result.sentiment.after +
+    ' (hapus ' + result.sentiment.removed + ')\n' +
+    'TopicCache: ' + result.topic.before + ' -> ' + result.topic.after +
+    ' (hapus ' + result.topic.removed + ')';
+  try {
+    SpreadsheetApp.getUi().alert('Selesai membersihkan cache', msg, SpreadsheetApp.getUi().ButtonSet.OK);
+  } catch (e) {
+    Logger.log(msg);
+  }
 }
