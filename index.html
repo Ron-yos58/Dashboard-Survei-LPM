@@ -2837,8 +2837,8 @@
 
                 <div class="table-card">
                     <div class="table-header">
-                         <span class="table-header-title">Topik Keluhan <span class="llm-badge" title="Topik keluhan diklasifikasikan langsung oleh LLM">LLM</span></span>
-                          <div style="display:flex;align-items:center;gap:.5rem">
+                         <span class="table-header-title">Topic <span class="llm-badge" title="Topik keluhan diklasifikasikan langsung oleh LLM">LLM</span></span>
+                          <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
                               <select class="filter-select" id="sa-topic-filter" onchange="renderTopicDistribution(sentimentRows(filteredLU))" aria-label="Filter topik keluhan">
                                   <option value="all">Semua Topik</option>
                                   <option value="Fasilitas">Fasilitas</option>
@@ -2849,6 +2849,12 @@
                                   <option value="Prosedur &amp; Administrasi">Prosedur &amp; Administrasi</option>
                                   <option value="Parkir &amp; Akses">Parkir &amp; Akses</option>
                                   <option value="Lainnya">Lainnya</option>
+                              </select>
+                              <select class="filter-select" id="sa-topic-sentiment-filter" onchange="renderTopicDistribution(sentimentRows(filteredLU))" aria-label="Filter topik berdasarkan sentimen">
+                                  <option value="all">Semua Sentimen</option>
+                                  <option value="Positif">Positif</option>
+                                  <option value="Negatif">Negatif</option>
+                                  <option value="Netral">Netral</option>
                               </select>
                               <button class="btn-download" id="sa-topic-classify-btn" onclick="triggerTopicClassification()" style="padding:10px 14px;font-size:12px;gap:6px">🔄 Analisis Topik</button>
                               <span class="table-badge" id="sa-topic-count">- topik</span>
@@ -2935,7 +2941,7 @@
                                 <th>Unit Layanan</th>
                                 <th>Peran</th>
                                 <th>Komentar</th>
-                                <th>Topik Keluhan</th>
+                                <th>Topic</th>
                                 <th>Sentimen</th>
                                 <th>Skor</th>
                             </tr>
@@ -4477,11 +4483,14 @@
              if (!list) return;
 
              var selectedTopic = document.getElementById('sa-topic-filter').value;
+             var selectedSentiment = document.getElementById('sa-topic-sentiment-filter').value;
              var stats = {};
              var classified = 0;
              rows.forEach(function (row) {
                  var topic = row._topic && row._topic.topic ? row._topic.topic : null;
                  if (!topic) return;
+                 var sentiment = getRowSentiment(row).label;
+                 if (selectedSentiment !== 'all' && sentiment !== selectedSentiment) return;
                  stats[topic] = (stats[topic] || 0) + 1;
                  classified++;
              });
@@ -4499,7 +4508,7 @@
              if (countEl) countEl.textContent = items.length + ' topik';
              if (!items.length) {
                  var failedOnly = rows.length - classified;
-                 list.innerHTML = '<div class="insight-sub">Belum ada topik keluhan yang terklasifikasi.' +
+                 list.innerHTML = '<div class="insight-sub">Belum ada topik yang terklasifikasi.' +
                      (failedOnly ? ' ' + failedOnly + ' komentar belum berhasil dianalisis.' : '') + '</div>';
                  return;
              }
